@@ -7,7 +7,7 @@
         {
 		  "name": "Онлайн Мод",
 		  "author": "@t_anton",
-		  "link": "https://nb557.github.io/plugins/online_mod.js",
+		  "link": "https://nurullaev.github.io/online_mod.js",
 		  "descr": "Фильмы и сериалы в онлайн, больше 10 балансеров для просмотра.",
 		  "available_lampa": 1
 		},
@@ -34,7 +34,7 @@
         {
 		  "name": "Онлайн Мод",
 		  "author": "@t_anton",
-		  "link": "https://nb557.github.io/plugins/online_mod.js",
+		  "link": "https://nurullaev.github.io/online_mod.js",
 		  "descr": "Фильмы и сериалы в онлайн, больше 10 балансеров для просмотра.",
 		  "available_lampa": 1
 		},
@@ -110,14 +110,14 @@
 		{
 		  "name": "Сброс настроек субтитров",
 		  "author": "@t_anton",
-		  "link": "https://nb557.github.io/plugins/reset_subs.js",
+		  "link": "https://nurullaev.github.io/reset_subs.js",
 		  "descr": "Сбрасывает настройки субтитров по умолчанию",
 		  "available_lampa": 1
 		},
 		{
 		  "name": "Выключение тача",
 		  "author": "@t_anton",
-		  "link": "https://nb557.github.io/plugins/not_mobile.js",
+		  "link": "https://nurullaev.github.io/not_mobile.js",
 		  "descr": "Выключает сенсорное управление, если оно было включено по ошибке",
 		  "available_lampa": 1
 		}
@@ -163,14 +163,14 @@
 	      {
 		  "name": "Радио Рекорд (мод плагина от @Tw1cker)",
 		  "author": "@elenatv99",
-		  "link": "https://lampaplugins.github.io/store/record.js",
+		  "link": "https://nurullaev.github.io/record.js",
 		  "descr": "Радио Рекорд + Радио Вера)))",
 		  "available_lampa": 1
 		},
 	      	{
 		  "name": "Отзывы и рецензии",
 		  "author": "@elenatv99",
-		  "link": "https://skaz.tv/o.js",
+		  "link": "https://nurullaev.github.io/o.js",
 		  "descr": "Добавляет кнопку чтения отзывов с КиноПоиск в карточку фильма или сериала",
 		  "available_lampa": 1
 		},
@@ -184,7 +184,7 @@
 		{
 		  "name": "Приятные мелочи",
 		  "author": "@AndreyURL54",
-		  "link": "https://skaztv.online/js/tricks.js",
+		  "link": "https://nurullaev.github.io/tricks.js",
 		  "descr": "Дополнение некоторых востребованных функций и дизайна, которых вам не хватало. (mod. Без проверки на MSX)",
 		  "available_lampa": 1
 		},
