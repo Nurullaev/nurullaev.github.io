@@ -1,4 +1,4 @@
-//12.08.2024 - Fix
+//12.08.2024 - Fx
 
 (function () {
     'use strict';
