@@ -1,4 +1,4 @@
-//07.09.2024 - Fix
+//16.09.2024 - Fix
 
 (function () {
     'use strict';
@@ -1644,7 +1644,7 @@
             if (links && links.length) data = data.concat(links);
             if (callback) callback(data, have_more, query);
           }, function (a, c) {
-            if (prox && a.status == 403 && a.responseText && a.responseText.indexOf('<div>105</div>') !== -1) {
+            if (prox && a.status == 403 && (!a.responseText || a.responseText.indexOf('<div>105</div>') !== -1)) {
               Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
             }
 
@@ -2324,9 +2324,10 @@
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
       var ref = host + '/';
       var embed = ref;
-      var decrypt = atob('InVzZSBzdHJpY3QiOyAoZnVuY3Rpb24oc2NyaXB0MSwgc2NyaXB0Miwgc3RyLCBQTEFZRVJfVFlQRSwgRklMRV9UWVBFLCBqc29uKXsgdmFyIHJlcyA9IFtdOyB2YXIgZG9jdW1lbnQgPSAobmV3IERPTVBhcnNlcikucGFyc2VGcm9tU3RyaW5nKCI8aGVhZD48L2hlYWQ+PGJvZHk+PC9ib2R5PiIsICJ0ZXh0L2h0bWwiKTsgdmFyIHBhdXNlX3RpbWUgPSAwOyB2YXIgZlZvaWQgPSBmdW5jdGlvbigpe307IHZhciBmSW50ID0gZnVuY3Rpb24oKXsgcmV0dXJuIDE7IH07IHZhciBYTUxIdHRwUmVxdWVzdCA9IGZ1bmN0aW9uIFhNTEh0dHBSZXF1ZXN0KCl7IHRoaXMub3BlbiA9IGZ1bmN0aW9uKG0sIHUpeyByZXMucHVzaCh7IHVybDogdSB9KTsgfTsgdGhpcy5zZW5kID0gZnVuY3Rpb24oKXt9OyB9OyB2YXIgYmFrMTIzID0geyBhamF4U2V0dXA6ICQuYWpheFNldHVwLCBjb29raWU6ICQuY29va2llLCBhamF4OiAkLmFqYXgsIGdldDogJC5nZXQsIHBvc3Q6ICQucG9zdCwgZ2V0U2NyaXB0OiAkLmdldFNjcmlwdCwgc2V0VGltZW91dDogd2luZG93LnNldFRpbWVvdXQsIGNsZWFyVGltZW91dDogd2luZG93LmNsZWFyVGltZW91dCwgc2V0SW50ZXJ2YWw6IHdpbmRvdy5zZXRJbnRlcnZhbCwgY2xlYXJJbnRlcnZhbDogd2luZG93LmNsZWFySW50ZXJ2YWwsIGNvbnNvbGU6IHdpbmRvdy5jb25zb2xlLCBmbl9pbml0OiAkLmZuLmluaXQsIF86ICIiIH07IHRyeSB7IHRyeSB7ICQuYWpheFNldHVwID0gJC5jb29raWUgPSBmVm9pZDsgJC5hamF4ID0gZnVuY3Rpb24oc2V0dGluZ3MpeyBpZiAoc2V0dGluZ3MubWV0aG9kID09PSAiSEVBRCIgfHwgc2V0dGluZ3MudHlwZSA9PT0gIkhFQUQiKXsgaWYgKHNldHRpbmdzLnN1Y2Nlc3MpIHNldHRpbmdzLnN1Y2Nlc3MobnVsbCwgInN1Y2Nlc3MiLCB7fSk7IGlmIChzZXR0aW5ncy5jb21wbGV0ZSkgc2V0dGluZ3MuY29tcGxldGUoe30sICJzdWNjZXNzIik7IH0gZWxzZSBpZiAoanNvbiAmJiAoL1wvdXNlcl9kYXRhLykudGVzdChzZXR0aW5ncy51cmwpKXsgaWYgKHNldHRpbmdzLnN1Y2Nlc3MpIHNldHRpbmdzLnN1Y2Nlc3MoanNvbiwgInN1Y2Nlc3MiLCB7fSk7IH0gZWxzZSBpZiAoc2V0dGluZ3MudXJsKSByZXMucHVzaCh7dHlwZTogImFqYXgiLCB1cmw6IHNldHRpbmdzLnVybCwgcGFyYW1zOiBzZXR0aW5ncy5kYXRhfSk7IH07ICQuZ2V0ID0gZnVuY3Rpb24odXJsLCBkYXRhKXsgcmVzLnB1c2goe3R5cGU6ICJnZXQiLCB1cmw6IHVybCwgcGFyYW1zOiBkYXRhfSk7IH07ICQucG9zdCA9IGZ1bmN0aW9uKHVybCwgZGF0YSl7IHJlcy5wdXNoKHt0eXBlOiAicG9zdCIsIHVybDogdXJsLCBwYXJhbXM6IGRhdGF9KTsgfTsgJC5nZXRTY3JpcHQgPSBmdW5jdGlvbih1cmwpeyByZXMucHVzaCh7dHlwZTogImdldFNjcmlwdCIsIHVybDogdXJsLCBwYXJhbXM6IHsiXyI6IERhdGUubm93KCl9fSk7IH07IHdpbmRvdy5zZXRUaW1lb3V0ID0gd2luZG93LnNldEludGVydmFsID0gZkludDsgd2luZG93LmNsZWFyVGltZW91dCA9IHdpbmRvdy5jbGVhckludGVydmFsID0gZlZvaWQ7IHdpbmRvdy5jb25zb2xlID0ge307ICQuZm4uaW5pdCA9IGZ1bmN0aW9uKHMsIGMsIHIpeyBjID0gYyB8fCBkb2N1bWVudDsgcmV0dXJuIG5ldyBiYWsxMjMuZm5faW5pdChzLCBjLCByKTsgfTsgZXZhbChzY3JpcHQxICsgIlxuIiArIHNjcmlwdDIgKyAiXG4iICsgc3RyICsgIlxudXNlcl9kYXRhKCk7Iik7IH0gZmluYWxseSB7ICQuYWpheFNldHVwID0gYmFrMTIzLmFqYXhTZXR1cDsgJC5jb29raWUgPSBiYWsxMjMuY29va2llOyAkLmFqYXggPSBiYWsxMjMuYWpheDsgJC5nZXQgPSBiYWsxMjMuZ2V0OyAkLnBvc3QgPSBiYWsxMjMucG9zdDsgJC5nZXRTY3JpcHQgPSBiYWsxMjMuZ2V0U2NyaXB0OyB3aW5kb3cuc2V0VGltZW91dCA9IGJhazEyMy5zZXRUaW1lb3V0OyB3aW5kb3cuY2xlYXJUaW1lb3V0ID0gYmFrMTIzLmNsZWFyVGltZW91dDsgd2luZG93LnNldEludGVydmFsID0gYmFrMTIzLnNldEludGVydmFsOyB3aW5kb3cuY2xlYXJJbnRlcnZhbCA9IGJhazEyMy5jbGVhckludGVydmFsOyB3aW5kb3cuY29uc29sZSA9IGJhazEyMy5jb25zb2xlOyAkLmZuLmluaXQgPSBiYWsxMjMuZm5faW5pdDsgfSB9IGNhdGNoIChlKXsgfSB2YXIgcGFyYW1zID0ge307IHJlcy5mb3JFYWNoKGZ1bmN0aW9uIChwKXsgaWYgKCgvXC91c2VyX2RhdGEvKS50ZXN0KHAudXJsKSkgcGFyYW1zLnVzZXIgPSBwOyBpZiAoKC9cL3ZvZFwvLykudGVzdChwLnVybCkpIHBhcmFtcy52b2QgPSBwOyB9KTsgcmV0dXJuIHBhcmFtczsgfSkuY2FsbCh7fSw=');
       var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
       var check_cookie = Lampa.Storage.get('online_mod_kinobase_cookie', '') + '';
+      var decrypt = Utils.decodeSecret([26, 69, 74, 81, 19, 74, 64, 66, 93, 91, 68, 27, 15, 19, 17, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 83, 70, 81, 64, 77, 5, 31, 25, 71, 83, 70, 81, 64, 77, 6, 31, 25, 71, 68, 70, 20, 16, 105, 120, 114, 96, 113, 98, 107, 108, 105, 105, 113, 31, 25, 114, 121, 120, 125, 111, 109, 109, 99, 124, 24, 16, 65, 75, 85, 75, 24, 19, 79, 91, 84, 29, 67, 16, 79, 85, 65, 25, 70, 85, 71, 24, 13, 25, 111, 110, 2, 20, 70, 85, 74, 16, 73, 88, 82, 64, 81, 66, 20, 5, 16, 87, 65, 95, 85, 15, 16, 66, 89, 66, 25, 80, 92, 90, 65, 93, 81, 86, 68, 25, 9, 19, 17, 90, 85, 67, 24, 116, 118, 121, 99, 88, 70, 67, 81, 74, 25, 23, 68, 82, 75, 71, 85, 114, 74, 95, 84, 103, 71, 75, 93, 94, 83, 16, 18, 5, 92, 86, 88, 80, 14, 8, 23, 88, 92, 85, 87, 7, 8, 82, 91, 92, 73, 7, 8, 28, 91, 91, 84, 77, 6, 18, 21, 20, 17, 77, 81, 72, 64, 23, 88, 77, 89, 95, 27, 29, 11, 20, 78, 81, 75, 20, 67, 88, 65, 67, 81, 103, 68, 80, 89, 86, 25, 9, 16, 4, 3, 16, 79, 85, 65, 25, 82, 102, 91, 81, 84, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 16, 79, 77, 15, 24, 70, 88, 70, 19, 95, 125, 94, 64, 24, 13, 25, 82, 70, 87, 87, 68, 93, 87, 94, 17, 29, 72, 25, 70, 85, 64, 77, 66, 87, 20, 2, 2, 20, 77, 15, 24, 70, 88, 70, 19, 97, 121, 124, 124, 76, 68, 73, 102, 86, 72, 65, 85, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 107, 116, 120, 120, 64, 76, 64, 107, 81, 66, 76, 81, 67, 64, 16, 25, 66, 20, 71, 81, 93, 67, 26, 87, 64, 92, 90, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 93, 24, 24, 69, 16, 79, 19, 75, 81, 67, 26, 72, 69, 74, 92, 27, 66, 20, 69, 70, 84, 10, 25, 65, 19, 68, 29, 11, 20, 69, 11, 25, 64, 91, 80, 71, 30, 71, 93, 94, 93, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 29, 75, 73, 3, 16, 68, 15, 19, 79, 85, 66, 20, 104, 92, 88, 77, 86, 75, 94, 67, 20, 5, 16, 95, 65, 93, 90, 64, 89, 91, 86, 16, 105, 88, 82, 64, 81, 66, 94, 75, 24, 86, 68, 71, 16, 79, 16, 68, 84, 81, 64, 81, 65, 25, 9, 16, 91, 72, 68, 2, 20, 78, 2, 20, 70, 85, 74, 16, 91, 85, 88, 8, 6, 3, 20, 5, 16, 66, 20, 82, 83, 85, 72, 103, 93, 68, 76, 68, 9, 25, 16, 30, 85, 82, 81, 65, 103, 86, 77, 65, 64, 24, 24, 83, 86, 91, 88, 80, 81, 10, 20, 28, 30, 90, 91, 92, 82, 93, 85, 24, 24, 81, 83, 85, 75, 3, 20, 20, 26, 89, 90, 88, 76, 31, 25, 83, 85, 64, 2, 16, 29, 26, 84, 92, 64, 28, 20, 72, 95, 74, 64, 9, 25, 16, 30, 68, 87, 67, 77, 24, 19, 94, 81, 68, 103, 91, 66, 80, 68, 71, 3, 20, 20, 26, 95, 85, 77, 103, 80, 75, 93, 64, 64, 20, 16, 74, 81, 71, 109, 93, 93, 81, 87, 69, 77, 14, 19, 78, 93, 94, 80, 87, 71, 23, 71, 86, 77, 96, 89, 89, 93, 95, 76, 64, 31, 25, 87, 92, 81, 89, 66, 109, 93, 94, 92, 91, 69, 64, 2, 16, 78, 93, 93, 93, 91, 71, 26, 91, 92, 92, 85, 65, 109, 93, 93, 81, 87, 69, 77, 24, 19, 74, 81, 68, 125, 86, 68, 92, 70, 69, 88, 88, 10, 20, 79, 89, 87, 80, 92, 78, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 20, 16, 90, 88, 86, 88, 70, 121, 90, 76, 85, 75, 66, 82, 85, 14, 16, 67, 81, 94, 93, 91, 68, 23, 87, 92, 81, 89, 66, 112, 90, 71, 92, 70, 70, 85, 84, 28, 25, 87, 92, 87, 71, 95, 88, 93, 10, 25, 67, 90, 87, 80, 95, 67, 22, 83, 86, 90, 64, 86, 88, 85, 24, 24, 86, 87, 107, 90, 87, 93, 68, 14, 24, 20, 23, 82, 93, 23, 93, 94, 93, 76, 28, 25, 82, 93, 102, 70, 85, 85, 92, 73, 3, 20, 23, 23, 82, 94, 26, 74, 85, 88, 80, 74, 21, 20, 111, 14, 24, 18, 27, 20, 78, 2, 20, 68, 70, 65, 16, 66, 20, 71, 75, 77, 16, 79, 24, 20, 23, 85, 89, 88, 76, 99, 81, 76, 69, 73, 20, 14, 25, 16, 30, 87, 87, 95, 82, 93, 86, 25, 9, 16, 82, 110, 95, 80, 80, 8, 25, 16, 30, 85, 82, 81, 65, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 85, 64, 76, 89, 87, 83, 64, 16, 79, 16, 93, 94, 16, 17, 71, 86, 77, 64, 89, 90, 95, 67, 23, 89, 86, 77, 92, 95, 80, 24, 13, 4, 9, 19, 27, 124, 117, 117, 124, 18, 25, 72, 79, 25, 71, 85, 64, 76, 89, 87, 83, 64, 23, 64, 73, 68, 93, 16, 4, 9, 14, 25, 22, 120, 113, 121, 116, 27, 29, 72, 25, 93, 86, 20, 16, 67, 92, 64, 71, 80, 90, 87, 71, 22, 67, 76, 87, 80, 92, 71, 67, 29, 24, 67, 92, 64, 71, 80, 90, 87, 71, 22, 67, 76, 87, 80, 92, 71, 67, 28, 86, 69, 85, 88, 31, 25, 22, 67, 65, 91, 83, 92, 71, 64, 27, 24, 16, 79, 69, 25, 2, 20, 90, 95, 20, 24, 71, 93, 68, 77, 93, 93, 94, 71, 30, 87, 87, 93, 73, 88, 86, 77, 81, 25, 20, 75, 85, 77, 64, 90, 87, 83, 67, 26, 91, 95, 84, 68, 95, 92, 64, 85, 28, 67, 77, 21, 20, 17, 74, 65, 83, 87, 93, 67, 74, 22, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 77, 67, 92, 70, 19, 31, 18, 16, 28, 23, 108, 22, 65, 64, 92, 70, 111, 80, 89, 68, 88, 27, 26, 23, 64, 85, 71, 76, 24, 74, 81, 71, 77, 93, 94, 83, 75, 30, 76, 70, 95, 16, 29, 75, 20, 81, 86, 25, 28, 64, 92, 64, 68, 93, 86, 87, 74, 26, 64, 76, 87, 83, 81, 75, 67, 16, 20, 64, 92, 64, 68, 93, 86, 87, 74, 26, 64, 76, 87, 83, 81, 75, 67, 17, 65, 64, 92, 70, 28, 20, 26, 67, 76, 87, 80, 92, 71, 67, 22, 20, 16, 66, 73, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 78, 95, 93, 20, 21, 31, 20, 24, 27, 100, 31, 98, 106, 111, 22, 105, 26, 104, 23, 108, 93, 31, 28, 16, 26, 68, 81, 75, 68, 17, 71, 86, 77, 64, 89, 90, 95, 67, 23, 65, 65, 85, 29, 25, 79, 24, 89, 95, 20, 27, 74, 81, 68, 64, 81, 94, 94, 71, 29, 74, 65, 83, 87, 93, 67, 74, 29, 19, 74, 81, 68, 64, 81, 94, 94, 71, 29, 74, 65, 83, 87, 93, 67, 74, 28, 69, 86, 80, 28, 20, 26, 67, 76, 87, 80, 92, 71, 67, 22, 20, 16, 66, 73, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 75, 85, 77, 64, 90, 87, 83, 67, 26, 77, 66, 85, 29, 19, 75, 81, 67, 26, 72, 69, 74, 92, 27, 66, 64, 73, 68, 93, 10, 25, 22, 82, 83, 85, 72, 22, 20, 16, 76, 70, 95, 3, 20, 67, 81, 76, 68, 80, 90, 84, 74, 26, 69, 70, 84, 28, 25, 68, 82, 75, 85, 93, 71, 2, 16, 74, 81, 71, 77, 93, 94, 83, 75, 30, 93, 85, 71, 88, 73, 25, 15, 24, 77, 2, 20, 23, 23, 83, 85, 64, 24, 13, 25, 82, 70, 87, 87, 68, 93, 87, 94, 17, 65, 65, 85, 24, 16, 80, 89, 68, 88, 29, 72, 25, 70, 85, 71, 22, 64, 76, 71, 91, 17, 79, 68, 77, 72, 85, 3, 20, 17, 94, 81, 68, 22, 20, 16, 76, 70, 95, 3, 20, 69, 70, 84, 28, 25, 68, 82, 75, 85, 93, 71, 2, 16, 93, 85, 71, 88, 73, 25, 15, 24, 77, 2, 20, 23, 23, 68, 95, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 28, 70, 75, 88, 28, 20, 92, 81, 77, 85, 26, 66, 20, 66, 81, 75, 30, 73, 65, 64, 81, 28, 75, 64, 65, 64, 92, 14, 19, 27, 68, 95, 71, 76, 18, 21, 20, 70, 75, 88, 10, 20, 77, 66, 85, 24, 19, 73, 85, 66, 85, 85, 67, 3, 20, 87, 88, 64, 81, 73, 17, 11, 25, 73, 8, 25, 16, 30, 83, 93, 68, 106, 87, 65, 80, 68, 68, 20, 5, 16, 95, 65, 93, 90, 64, 89, 91, 86, 24, 76, 70, 95, 16, 79, 16, 70, 93, 67, 23, 68, 70, 74, 92, 24, 79, 76, 73, 73, 81, 9, 25, 22, 87, 81, 76, 99, 90, 70, 90, 73, 64, 18, 24, 24, 69, 75, 88, 9, 25, 65, 66, 88, 20, 16, 73, 85, 65, 88, 89, 67, 14, 24, 75, 27, 107, 17, 3, 20, 116, 85, 76, 85, 23, 90, 92, 78, 28, 25, 73, 69, 25, 2, 20, 78, 2, 20, 71, 93, 86, 84, 86, 67, 29, 74, 81, 68, 96, 81, 93, 92, 91, 70, 77, 20, 13, 20, 79, 89, 87, 80, 92, 78, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 24, 13, 25, 82, 122, 87, 64, 11, 20, 79, 89, 87, 80, 92, 78, 26, 83, 88, 93, 81, 75, 96, 90, 84, 81, 95, 65, 76, 16, 4, 20, 68, 80, 90, 84, 91, 79, 30, 90, 88, 86, 88, 70, 121, 90, 76, 85, 75, 66, 82, 85, 20, 13, 20, 94, 102, 86, 93, 87, 2, 20, 71, 93, 86, 84, 86, 67, 29, 90, 91, 94, 71, 87, 92, 92, 20, 14, 25, 79, 77, 15, 24, 20, 23, 82, 93, 23, 93, 94, 93, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 28, 64, 21, 20, 83, 24, 24, 66, 16, 79, 19, 90, 20, 13, 20, 91, 16, 69, 72, 19, 93, 91, 83, 65, 85, 85, 87, 64, 8, 25, 70, 85, 64, 77, 66, 87, 20, 93, 92, 67, 16, 86, 89, 91, 8, 6, 0, 23, 82, 94, 107, 81, 94, 80, 64, 27, 74, 24, 16, 87, 20, 16, 75, 29, 8, 25, 73, 11, 20, 28, 30, 95, 90, 29, 75, 81, 81, 80, 65, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 28, 91, 16, 79, 16, 70, 93, 68, 76, 70, 93, 25, 92, 16, 18, 30, 16, 81, 28, 26, 2, 20, 77, 15, 24, 85, 79, 85, 95, 17, 71, 83, 70, 81, 64, 77, 5, 19, 18, 20, 18, 104, 86, 18, 25, 31, 19, 74, 87, 66, 93, 72, 68, 11, 20, 24, 25, 22, 108, 90, 26, 16, 18, 20, 64, 77, 70, 25, 15, 24, 77, 25, 82, 90, 87, 85, 92, 88, 65, 16, 66, 20, 23, 23, 85, 90, 85, 64, 99, 92, 64, 70, 73, 20, 13, 20, 90, 81, 82, 5, 1, 10, 26, 81, 94, 89, 72, 106, 81, 71, 76, 68, 11, 20, 28, 30, 90, 91, 92, 82, 93, 85, 20, 5, 16, 91, 85, 88, 8, 6, 3, 26, 91, 95, 86, 95, 90, 92, 15, 16, 16, 22, 81, 83, 85, 75, 25, 9, 16, 86, 89, 91, 8, 6, 0, 23, 85, 90, 85, 64, 11, 25, 16, 29, 94, 81, 68, 20, 5, 16, 91, 85, 88, 8, 6, 3, 26, 95, 85, 77, 15, 19, 29, 26, 64, 91, 75, 68, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 68, 92, 74, 64, 11, 20, 28, 30, 94, 81, 71, 106, 87, 66, 93, 72, 68, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 83, 86, 77, 103, 83, 70, 81, 64, 77, 15, 19, 78, 93, 94, 80, 87, 71, 23, 71, 86, 77, 96, 89, 89, 93, 95, 76, 64, 19, 4, 20, 82, 85, 83, 1, 11, 7, 29, 74, 81, 68, 96, 81, 93, 92, 91, 70, 77, 15, 16, 67, 81, 94, 93, 91, 68, 23, 87, 92, 81, 89, 66, 109, 93, 94, 92, 91, 69, 64, 24, 13, 25, 86, 82, 82, 5, 2, 7, 22, 83, 85, 81, 82, 75, 96, 89, 89, 93, 95, 76, 64, 8, 25, 67, 89, 90, 92, 95, 78, 26, 64, 92, 64, 121, 90, 76, 85, 75, 66, 82, 85, 20, 13, 20, 90, 81, 82, 5, 1, 10, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 3, 16, 78, 93, 93, 93, 91, 71, 26, 91, 92, 92, 85, 65, 112, 90, 68, 81, 74, 70, 88, 88, 19, 4, 20, 82, 85, 83, 1, 11, 7, 29, 90, 88, 85, 85, 74, 121, 87, 64, 86, 75, 66, 81, 88, 3, 16, 78, 93, 93, 93, 91, 71, 26, 91, 95, 87, 71, 92, 85, 81, 16, 9, 24, 82, 88, 95, 2, 11, 7, 30, 87, 87, 94, 74, 91, 95, 92, 15, 16, 16, 22, 86, 87, 26, 90, 87, 93, 68, 20, 5, 16, 91, 85, 88, 8, 6, 3, 26, 94, 94, 102, 93, 93, 80, 64, 11, 20, 28, 30, 95, 90, 29, 75, 81, 81, 80, 65, 16, 4, 20, 81, 88, 95, 1, 6, 11, 30, 75, 81, 82, 93, 77, 11, 20, 69, 16, 68, 20, 80, 88, 64, 83, 92, 24, 24, 92, 29, 72, 25, 73, 16, 66, 89, 66, 25, 68, 82, 75, 85, 93, 71, 24, 13, 25, 79, 78, 2, 20, 66, 81, 75, 30, 95, 91, 65, 124, 85, 83, 92, 16, 86, 76, 90, 80, 77, 93, 95, 90, 24, 24, 73, 29, 72, 25, 93, 86, 20, 16, 24, 22, 104, 28, 76, 71, 85, 70, 103, 84, 88, 64, 82, 22, 29, 30, 64, 93, 67, 77, 28, 67, 23, 65, 66, 88, 17, 25, 25, 68, 82, 75, 85, 93, 71, 22, 69, 74, 81, 65, 25, 9, 16, 68, 3, 16, 80, 82, 19, 17, 28, 31, 104, 23, 107, 103, 104, 28, 100, 30, 108, 27, 100, 84, 18, 27, 26, 23, 64, 85, 71, 76, 24, 73, 26, 70, 75, 88, 25, 29, 24, 64, 88, 70, 82, 84, 71, 30, 66, 87, 84, 25, 9, 19, 73, 15, 16, 73, 17, 11, 25, 68, 82, 75, 85, 93, 71, 22, 64, 85, 85, 74, 92, 70, 16, 9, 24, 64, 85, 85, 74, 92, 70, 11, 20, 74, 85, 77, 65, 65, 87, 20, 64, 85, 74, 81, 84, 71, 8, 25, 73, 25, 26, 91, 81, 85, 88, 27, 66, 73, 28]);
+
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2615,17 +2616,20 @@
        */
 
 
-      function extractData(str, page) {
+      function extractData(vod, page) {
         var quality_match = page.match(/<li><b>Качество:<\/b>([^<,]+)<\/li>/i);
         var translation_match = page.match(/<li><b>Перевод:<\/b>([^<,]+)<\/li>/i);
         quality_type = quality_match ? quality_match[1].trim() : '';
         translation = translation_match ? translation_match[1].trim() : '';
-        var vod = (str || '').split('|');
+        var pl = vod && vod.file && Lampa.Arrays.decodeJson(vod.file, []) || [];
 
-        if (vod[0] == 'file') {
-          var file = vod[1];
+        if (pl.length) {
+          extract = pl;
+          is_playlist = true;
+        } else if (vod && vod.file) {
+          var file = vod.file;
           var found = [];
-          var subtiles = parseSubs(vod[2]);
+          var subtiles = parseSubs(vod.subtitle);
 
           if (file) {
             var voices = {};
@@ -2656,9 +2660,6 @@
 
           extract = found;
           is_playlist = false;
-        } else if (vod[0] == 'pl') {
-          extract = Lampa.Arrays.decodeJson(vod[1], []);
-          is_playlist = true;
         } else component.emptyForQuery(select_title);
       }
 
@@ -2711,7 +2712,6 @@
             var SCRIPTS = IMAGES_URL_SCRIPT ? IMAGES_URL_SCRIPT.index > MOVIE_ID_SCRIPT.index ? [MOVIE_ID_SCRIPT[1], IMAGES_URL_SCRIPT[1]] : [IMAGES_URL_SCRIPT[1], MOVIE_ID_SCRIPT[1]] : [MOVIE_ID_SCRIPT[1], ''];
             if (SCRIPTS[1] === SCRIPTS[0]) SCRIPTS[1] = '';
             var movie_url = component.fixLink(MOVIE_URL[1], '', ref);
-
             network.clear();
             network.timeout(1000 * 10);
             network["native"](page_prox + movie_url, function (script) {
@@ -2727,7 +2727,7 @@
               user_params['movie_id'] = MOVIE_ID[1];
               user_params['cuid'] = PLAYER_CUID[1];
               user_params['_'] = Date.now();
-              var user_url = getUrlWithParams('/user_data', user_params);
+              var user_url = getUrlWithParams(params.user && params.user.url || '/user_data', user_params);
               network.clear();
               network.timeout(1000 * 10);
               network["native"](page_prox + user_url, function (data) {
@@ -2742,24 +2742,34 @@
 
                   if (data.allow_watch != null && !data.allow_watch) {
                     Lampa.Noty.show(Lampa.Lang.translate('online_mod_blockedlink') + (data.client_country ? ': ' + data.client_country : ''));
+                    component.emptyForQuery(select_title);
+                    return;
                   } else if (!_params.vod) {
                     Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+                    component.emptyForQuery(select_title);
+                    return;
                   }
 
                   var vod_params = _params.vod && _params.vod.params || {};
                   vod_params['identifier'] = IDENTIFIER[1];
                   vod_params['player_type'] = 'new';
                   vod_params['file_type'] = file_type;
-                  vod_params['st'] = vod_params['st'] || data.vod_hash3;
-                  vod_params['e'] = vod_params['e'] || data.vod_time3;
+                  vod_params['st'] = vod_params['st'];
+                  vod_params['e'] = vod_params['e'];
                   vod_params['_'] = Date.now();
-                  var vod_url = getUrlWithParams('/vod/' + MOVIE_ID[1], vod_params);
+                  var vod_url = getUrlWithParams(_params.vod.url || '/vod/' + MOVIE_ID[1], vod_params);
                   network.clear();
                   network.timeout(1000 * 10);
                   network["native"](page_prox + vod_url, function (files) {
                     console.log('Kinobase', 'vod:', files);
                     component.loading(false);
-                    extractData(files, str);
+                    var params = {};
+
+                    try {
+                      params = (0, eval)(decrypt + [JSON.stringify(component.decodeHtml(SCRIPTS[0])), JSON.stringify(component.decodeHtml(SCRIPTS[1])), JSON.stringify(script), JSON.stringify('new'), JSON.stringify(file_type), JSON.stringify(data), JSON.stringify(files)].join(',') + ');');
+                    } catch (e) {}
+
+                    extractData(params.player, str);
                     filter();
                     append(filtred());
                   }, function (a, c) {
@@ -2779,6 +2789,7 @@
               }, function (a, c) {
                 component.empty(network.errorDecode(a, c));
               }, false, {
+                dataType: 'text',
                 withCredentials: !prox,
                 headers: headers
               });
@@ -2960,7 +2971,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
       var prox = component.proxy('collaps');
-      var embed = (prefer_http ? 'http:' : 'https:') + '//api.marts.ws/embed/';
+      var embed = (prefer_http ? 'http:' : 'https:') + '//api.ninsel.ws/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
       var filter_items = {};
       var choice = {
@@ -3219,7 +3230,7 @@
           }
 
           if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
-          item.on('hover:enter', function () {
+          item.on('hover:enter', function (event, options) {
             if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
 
             if (element.file) {
@@ -3251,6 +3262,7 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
+              if (options && options.runas) Lampa.Player.runas(options.runas);else if (Lampa.Storage.field('online_mod_collaps_lampa_player') === true) Lampa.Player.runas('lampa');
               Lampa.Player.play(first);
               Lampa.Player.playlist(playlist);
 
@@ -4772,9 +4784,9 @@
       var extract = [];
       var object = _object;
       var select_title = '';
-      var prefer_http = false;
+      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('fancdn');
-      var embed = ('https:') + '//fancdn.net/ember/';
+      var embed = (prefer_http ? 'http:' : 'https:') + '//fancdn.net/ember/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -4906,7 +4918,7 @@
           var items = component.parsePlaylist(str).map(function (item) {
             var quality = item.label.match(/(\d\d\d+)p/);
             var link = item.links[0] || '';
-            if (prefer_http) ;
+            if (prefer_http) link = link.replace('https://', 'http://');
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
@@ -4995,6 +5007,8 @@
           return;
         }
 
+        if (prefer_http) url = url.replace('https://', 'http://');
+
         if (url.substr(-5) === '.m3u8') {
           getStreamM3U(element, call, error, url);
           return;
@@ -5012,6 +5026,7 @@
         if (!str) return false;
         var subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
+          if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
             url: component.proxyStream(component.fixLink(link, '', url), 'fancdn')
@@ -15264,7 +15279,9 @@
 
               if (a.player) {
                 Lampa.Player.runas(a.player);
-                params.item.trigger('hover:enter');
+                params.item.trigger('hover:enter', {
+                  runas: a.player
+                });
               }
 
               if (a.copylink) {
@@ -15383,7 +15400,7 @@
       };
     }
 
-    var mod_version = '07.09.2024';
+    var mod_version = '16.09.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -15434,6 +15451,7 @@
     Lampa.Params.trigger('online_mod_prefer_http', window.location.protocol !== 'https:');
     Lampa.Params.trigger('online_mod_prefer_mp4', true);
     Lampa.Params.trigger('online_mod_prefer_dash', false);
+    Lampa.Params.trigger('online_mod_collaps_lampa_player', true);
     Lampa.Params.trigger('online_mod_av1_support', true);
     Lampa.Params.trigger('online_mod_save_last_balanser', false);
     Lampa.Params.trigger('online_mod_rezka2_fix_stream', false);
@@ -15646,6 +15664,13 @@
         be: 'Аддаваць перавагу DASH замест HLS',
         en: 'Prefer DASH over HLS',
         zh: '更喜欢 DASH 而不是 HLS'
+      },
+      online_mod_collaps_lampa_player: {
+        ru: 'Collaps: Встроенный плеер',
+        uk: 'Collaps: Вбудований плеєр',
+        be: 'Collaps: Убудаваны плэер',
+        en: 'Collaps: Lampa player',
+        zh: 'Collaps： Lampa播放器'
       },
       online_mod_av1_support: {
         ru: 'AV1 поддерживается',
@@ -16196,7 +16221,7 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} RedHeadSound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
