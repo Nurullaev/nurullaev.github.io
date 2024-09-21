@@ -1,4 +1,4 @@
-//16.09.2024 - Fix
+//18.09.2024 - Fix
 
 (function () {
     'use strict';
@@ -81,8 +81,9 @@
       var proxy1 = 'https://cors.nb557.workers.dev:8443/';
       var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
       var proxy3 = 'https://cors557.deno.dev/';
-      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/?';
-      var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]);
+      var proxy_apn0 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/';
+      var proxy_apn = proxy_apn0 + '?';
+      var proxy_secret = isDebug() ? decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]) : proxy_apn0;
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
       var proxy_other_url = proxy_other ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
       var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
@@ -99,6 +100,7 @@
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return proxy_apn;
+        if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn0;
         if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy2;
@@ -2970,9 +2972,15 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
-      var prox = component.proxy('collaps');
       var embed = (prefer_http ? 'http:' : 'https:') + '//api.ninsel.ws/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
+      var prox = component.proxy('collaps');
+
+      if (prox) {
+        prox += 'param/User-Agent=' + encodeURIComponent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1') + '/';
+      }
+
+      var stream_prox = prox;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -3151,13 +3159,13 @@
                   info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
                   season: season.season,
                   episode: parseInt(episode.episode),
-                  file: file,
+                  file: component.fixLink(file, stream_prox),
                   subtitles: episode.cc ? episode.cc.map(function (c) {
                     var url = c.url || '';
                     if (prefer_http) url = url.replace('https://', 'http://');
                     return {
                       label: c.name,
-                      url: url
+                      url: component.fixLink(url, stream_prox)
                     };
                   }) : false,
                   audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -3194,13 +3202,13 @@
             title: extract.title || select_title,
             quality: max_quality ? max_quality + 'p' : '360p ~ 1080p',
             info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
-            file: file,
+            file: component.fixLink(file, stream_prox),
             subtitles: extract.source.cc ? extract.source.cc.map(function (c) {
               var url = c.url || '';
               if (prefer_http) url = url.replace('https://', 'http://');
               return {
                 label: c.name,
-                url: url
+                url: component.fixLink(url, stream_prox)
               };
             }) : false,
             audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -12435,7 +12443,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'limit=20');
         url = Lampa.Utils.addUrlComponent(url, 'search=' + encodeURIComponent(select_title));
         network.clear();
-        network.timeout(1000 * 10);
+        network.timeout(1000 * 15);
         network["native"](prox + url, function (json) {
           display(json && json.list);
         }, function (a, c) {
@@ -13206,7 +13214,7 @@
             var obj = playlists[key];
             var quality = parseInt(key);
             var link = decode(obj && obj[0] && obj[0].src || '');
-            if (startsWith(link, '//')) link = (prefer_http ? 'http:' : 'https:') + link;
+            if (startsWith(link, '//')) link = (prefer_http ? 'http:' : 'https:') + link;else if (prefer_http) link = link.replace('https://', 'http://');
             if (prefer_mp4) ;
             items.push({
               label: quality ? quality + 'p' : '360p ~ 1080p',
@@ -14094,7 +14102,7 @@
       });
       var files = new Lampa.Explorer(object);
       var filter = new Lampa.Filter(object);
-      var balanser = Lampa.Storage.get('online_mod_balanser', 'collaps') + '';
+      var balanser = Lampa.Storage.get('online_mod_balanser', 'videocdn') + '';
       var last_bls = Lampa.Storage.field('online_mod_save_last_balanser') === true ? Lampa.Storage.cache('online_mod_last_balanser', 200, {}) : {};
       var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
       var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
@@ -14287,7 +14295,7 @@
       }); // шаловливые ручки
 
       if (filter_sources.indexOf(balanser) == -1) {
-        balanser = 'collaps';
+        balanser = 'videocdn';
         Lampa.Storage.set('online_mod_balanser', balanser);
       }
 
@@ -15400,7 +15408,7 @@
       };
     }
 
-    var mod_version = '16.09.2024';
+    var mod_version = '18.09.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -15413,12 +15421,12 @@
 
     if (!Utils.isDebug()) {
       Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
+      Lampa.Storage.set('online_mod_proxy_collaps', 'false');
       Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
       Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
     }
 
     Lampa.Storage.set('online_mod_proxy_videocdn', 'false');
-    Lampa.Storage.set('online_mod_proxy_collaps', 'false');
     Lampa.Storage.set('online_mod_proxy_videodb', 'false');
     Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
@@ -15451,7 +15459,7 @@
     Lampa.Params.trigger('online_mod_prefer_http', window.location.protocol !== 'https:');
     Lampa.Params.trigger('online_mod_prefer_mp4', true);
     Lampa.Params.trigger('online_mod_prefer_dash', false);
-    Lampa.Params.trigger('online_mod_collaps_lampa_player', true);
+    Lampa.Params.trigger('online_mod_collaps_lampa_player', false);
     Lampa.Params.trigger('online_mod_av1_support', true);
     Lampa.Params.trigger('online_mod_save_last_balanser', false);
     Lampa.Params.trigger('online_mod_rezka2_fix_stream', false);
@@ -15468,13 +15476,12 @@
       Lampa.Storage.set('online_mod_prefer_http', 'false');
     }
 
-    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 4) {
-      if (['videocdn', 'zetflix'].indexOf(Lampa.Storage.get('online_mod_balanser', '') + '') !== -1) {
-        Lampa.Storage.set('online_mod_balanser', 'collaps');
+    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 5) {
+      if (['collaps'].indexOf(Lampa.Storage.get('online_mod_balanser', '') + '') !== -1) {
+        Lampa.Storage.set('online_mod_balanser', 'videocdn');
       }
 
-      Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
-      Lampa.Storage.set('online_mod_proxy_reset', '4');
+      Lampa.Storage.set('online_mod_proxy_reset', '5');
     }
 
     if (!Lampa.Lang) {
@@ -16212,6 +16219,7 @@
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_collaps\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
@@ -16221,7 +16229,13 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} RedHeadSound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+
+    {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    }
+
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
