@@ -1,4 +1,4 @@
-//04.11.2024 - AnimeLib
+//07.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -324,7 +324,7 @@
       var prox = component.proxy('svetacdn');
       var host = (prefer_http ? 'http:' : 'https:') + '//videocdn.tv';
       var ref = host + '/';
-      var embed = '//93703.svetacdn.in/0HlZgU1l1mw5';
+      var embed = atob('Ly85MzcwMy5hbm5hY2RuLmNjL3I5WHJPUW1wRlZ4Tw==');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -374,7 +374,7 @@
         select_title = object.search || object.movie.title;
         var error = component.empty.bind(component);
         var iframe_src = data[0] && data[0].iframe_src;
-        var src = iframe_src ? iframe_src : Lampa.Utils.addUrlComponent(embed, (+kinopoisk_id ? 'kp_id=' : 'imdb_id=') + kinopoisk_id);
+        var src = iframe_src ? iframe_src.replace(/^\/\/[^\/]+\/[^\/?]+/, embed) : Lampa.Utils.addUrlComponent(embed, (+kinopoisk_id ? 'kp_id=' : 'imdb_id=') + kinopoisk_id);
         videocdn_search(src, function (str) {
           if (str) parse(str);else if (!iframe_src && !object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
             var src2 = Lampa.Utils.addUrlComponent(embed, 'imdb_id=' + object.movie.imdb_id);
@@ -14212,6 +14212,7 @@
       function getStream(element, call, error) {
         if (element.stream) return call(element);
         var episode = element.media.episode;
+        var old_player = element.media.player;
         getPlayers(episode, function () {
           var player = element.media.player;
 
@@ -14235,6 +14236,26 @@
             items.forEach(function (item) {
               quality[item.label] = item.file;
             });
+          }
+
+          if (!old_player && player) {
+            var voice_name = player && player.team && player.team.name || '???';
+            var server = servers[choice.server] || servers[0];
+            element.quality = items[0] ? items[0].label : '???';
+            element.info = ' / ' + voice_name + ' / ' + server.name;
+            var dst = element.template && element.template.find('.online__quality');
+
+            if (dst && dst.length) {
+              var src = Lampa.Template.get('online_mod', element).find('.online__quality');
+
+              if (src && src.length) {
+                if (Lampa.Timeline.details) {
+                  src.append(Lampa.Timeline.details(element.timeline, ' / '));
+                }
+
+                dst[0].innerHTML = src[0].innerHTML;
+              }
+            }
           }
 
           if (file) {
@@ -14265,6 +14286,7 @@
           var item = Lampa.Template.get('online_mod', element);
           var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.season > 10 ? ':' : '', element.episode, object.movie.original_title, element.orig_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.orig_title + element.title);
           element.timeline = view;
+          element.template = item;
           item.append(Lampa.Timeline.render(view));
 
           if (Lampa.Timeline.details) {
@@ -15882,7 +15904,8 @@
         source: new fancdn(this, object),
         search: true,
         kp: false,
-        imdb: false
+        imdb: false,
+        disabled: disable_dbg
       }, {
         name: 'fanserials',
         title: 'FanSerials',
@@ -15948,14 +15971,6 @@
         search: true,
         kp: false,
         imdb: true,
-        disabled: true
-      }, {
-        name: 'filmix2',
-        title: 'Filmix 4K',
-        source: new filmix(this, object, true),
-        search: true,
-        kp: false,
-        imdb: false,
         disabled: true
       }];
       var obj_filter_sources = all_sources.filter(function (s) {
@@ -16158,7 +16173,7 @@
 
       this.vcdn_api_search = function (api, data, callback, error) {
         var prox = this.proxy('videocdn');
-        var url = (prefer_http ? 'http:' : 'https:') + '//videocdn.tv/api/';
+        var url = 'https://portal.lumex.host/api/';
         network.clear();
         network.timeout(1000 * 20);
         network.silent(prox + url + api, function (json) {
@@ -16306,7 +16321,7 @@
         };
 
         var vcdn_search_by_title = function vcdn_search_by_title(callback, error) {
-          var params = Lampa.Utils.addUrlComponent('', 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
+          var params = Lampa.Utils.addUrlComponent('', atob('YXBpX3Rva2VuPUM3WnhESHVuNGM2TURtTk55aXZEdUxkVlFQVWtKSDdp'));
           params = Lampa.Utils.addUrlComponent(params, 'query=' + encodeURIComponent(query));
           params = Lampa.Utils.addUrlComponent(params, 'field=title');
 
@@ -16323,7 +16338,7 @@
 
         var vcdn_search_by_id = function vcdn_search_by_id(callback, error) {
           if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
-            var params = Lampa.Utils.addUrlComponent('', 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
+            var params = Lampa.Utils.addUrlComponent('', atob('YXBpX3Rva2VuPUM3WnhESHVuNGM2TURtTk55aXZEdUxkVlFQVWtKSDdp'));
             var imdb_params = object.movie.imdb_id ? Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id)) : '';
             var kp_params = +object.movie.kinopoisk_id ? Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id)) : '';
 
@@ -17144,7 +17159,7 @@
       };
     }
 
-    var mod_version = '04.11.2024';
+    var mod_version = '07.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -17160,6 +17175,7 @@
       Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
       Lampa.Storage.set('online_mod_proxy_collaps', 'false');
       Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
+      Lampa.Storage.set('online_mod_proxy_fancdn', 'false');
       Lampa.Storage.set('online_mod_proxy_fanserials', 'false');
       Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
     }
@@ -18116,9 +18132,8 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fancdn\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanCDN</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-
     if (Utils.isDebug()) {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fancdn\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanCDN</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fanserials\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanSerials</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} RedHeadSound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
@@ -18162,8 +18177,11 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fix_stream\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fix_stream}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+    if (Utils.isDebug()) {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+    }
+
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_use_stream_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_use_stream_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
