@@ -1,4 +1,4 @@
-//12.11.2024 - Fix
+//17.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -63,6 +63,10 @@
       return url;
     }
 
+    function fanserialsHost() {
+      return 'https://s3.fanserialstv.net';
+    }
+
     function filmixToken(dev_id, token) {
       return '?user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_token=' + token + '&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.1.8&app_lang=ru-rRU';
     }
@@ -98,7 +102,6 @@
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
       if (name === 'filmix') return window.location.protocol === 'https:' && !Lampa.Platform.is('android') ? user_proxy1 : '';
       if (name === 'filmix_site') return user_proxy2;
-      if (name === 'svetacdn') return '';
       if (name === 'zetflix') return proxy_apn;
       if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
       if (name === 'cookie') return user_proxy1;
@@ -107,6 +110,7 @@
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'iframe') return user_proxy2;
+        if (name === 'lumex') return user_proxy2;
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return proxy_apn;
@@ -151,12 +155,28 @@
       return randomChars('0123456789abcdefghijklmnopqrstuvwxyz', len);
     }
 
+    function checkAndroidVersion(needVersion) {
+      if (typeof AndroidJS !== 'undefined') {
+        try {
+          var current = AndroidJS.appVersion().split('-');
+          var versionCode = current.pop();
+
+          if (parseInt(versionCode, 10) >= needVersion) {
+            return true;
+          }
+        } catch (e) {}
+      }
+
+      return false;
+    }
+
     var Utils = {
       decodeSecret: decodeSecret,
       isDebug: isDebug,
       isDebug2: isDebug2,
       rezka2Mirror: rezka2Mirror,
       kinobaseMirror: kinobaseMirror,
+      fanserialsHost: fanserialsHost,
       filmixToken: filmixToken,
       setMyIp: setMyIp,
       getMyIp: getMyIp,
@@ -164,7 +184,8 @@
       randomWords: randomWords,
       randomChars: randomChars,
       randomHex: randomHex,
-      randomId: randomId
+      randomId: randomId,
+      checkAndroidVersion: checkAndroidVersion
     };
 
     var network$1 = new Lampa.Reguest();
@@ -300,31 +321,47 @@
       clear: clear
     };
 
-    function _typeof(obj) {
-      "@babel/helpers - typeof";
-
-      return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
-        return typeof obj;
-      } : function (obj) {
-        return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      }, _typeof(obj);
-    }
-
-    function videocdn(component, _object) {
+    function lumex(component, _object) {
       var network = new Lampa.Reguest();
       var extract = {};
       var object = _object;
-      extract.voice = [];
+      extract.seasons = [];
       extract.season_num = [];
-      extract.voice_seasons = {};
-      extract.fs = {};
+      extract.media = [];
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
-      var prox = component.proxy('svetacdn');
-      var host = (prefer_http ? 'http:' : 'https:') + '//videocdn.tv';
+      var prox = component.proxy('lumex');
+      var host = atob('aHR0cHM6Ly9wLmx1bWV4LnB3');
       var ref = host + '/';
-      var embed = atob('Ly85MzcwMy5hbm5hY2RuLmNjL3I5WHJPUW1wRlZ4Tw==');
+      var headers = Lampa.Platform.is('android') ? {
+        'Origin': host,
+        'Referer': ref,
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site'
+      } : {};
+      var headers2 = Lampa.Platform.is('android') ? {
+        'Origin': host,
+        'Referer': ref,
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site',
+        'Cookie': '',
+        'x-csrf-token': ''
+      } : {};
+
+      if (prox) {
+        prox += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
+        prox += 'param/Sec-Fetch-Dest=empty/';
+        prox += 'param/Sec-Fetch-Mode=cors/';
+        prox += 'param/Sec-Fetch-Site=same-site/';
+      }
+
+      var prox2 = prox;
+      var embed = atob('aHR0cHM6Ly9hcGkubHVtZXgucHcv');
+      var suffix = atob('Y2xpZW50SWQ9Q1dmS1hMYzFhaklkJmRvbWFpbj1tb3ZpZWxhYi5vbmUmdXJsPW1vdmllbGFiLm9uZQ==');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -333,34 +370,57 @@
         voice_id: 0
       };
 
-      function videocdn_search(iframe_src, callback, error) {
-        var url = (window.location.protocol === 'https:' && !prox ? 'https:' : 'http:') + iframe_src;
-
+      function lumex_search(api, callback, error) {
         var error_check = function error_check(a, c) {
           if (a.status == 404 || a.status == 0 && a.statusText !== 'timeout') {
             if (callback) callback('');
           } else if (error) error(network.errorDecode(a, c));
         };
 
-        {
-          var meta = $('head meta[name="referrer"]');
-          var referrer = meta.attr('content') || 'never';
-          meta.attr('content', 'origin');
+        var returnHeaders = true;
+        var cookie_prox = prox;
 
-          try {
-            network.clear();
-            network.timeout(20000);
-            network["native"](prox + url, callback, error_check, false, {
-              dataType: 'text',
-              headers: Lampa.Platform.is('android') ? {
-                'Origin': host,
-                'Referer': ref
-              } : {}
-            });
-          } finally {
-            meta.attr('content', referrer);
-          }
+        if (cookie_prox) {
+          cookie_prox += 'cookie_plus/param/Cookie=/';
+          returnHeaders = false;
         }
+
+        var success_check = function success_check(json) {
+          var cookie = '';
+
+          if (json && json.headers && json.body) {
+            var cookieHeaders = json.headers['set-cookie'] || null;
+
+            if (cookieHeaders && cookieHeaders.forEach) {
+              var values = {};
+              cookieHeaders.forEach(function (param) {
+                var parts = param.split(';')[0].split('=');
+
+                if (parts[0]) {
+                  if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
+                }
+              });
+              var cookies = [];
+
+              for (var name in values) {
+                cookies.push(name + '=' + values[name]);
+              }
+
+              cookie = cookies.join('; ');
+            }
+
+            json = typeof json.body === 'string' ? Lampa.Arrays.decodeJson(json.body, {}) : json.body;
+          }
+
+          callback(json, cookie);
+        };
+
+        network.clear();
+        network.timeout(10000);
+        network["native"](cookie_prox + api, success_check, error_check, false, {
+          headers: headers,
+          returnHeaders: returnHeaders
+        });
       }
       /**
        * Начать поиск
@@ -373,13 +433,27 @@
         object = _object;
         select_title = object.search || object.movie.title;
         var error = component.empty.bind(component);
-        var iframe_src = data[0] && data[0].iframe_src;
-        var src = iframe_src ? iframe_src.replace(/^\/\/[^\/]+\/[^\/?]+/, embed) : Lampa.Utils.addUrlComponent(embed, (+kinopoisk_id ? 'kp_id=' : 'imdb_id=') + kinopoisk_id);
-        videocdn_search(src, function (str) {
-          if (str) parse(str);else if (!iframe_src && !object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
-            var src2 = Lampa.Utils.addUrlComponent(embed, 'imdb_id=' + object.movie.imdb_id);
-            videocdn_search(src2, function (str) {
-              if (str) parse(str);else component.emptyForQuery(select_title);
+        var found = false;
+        var src = embed + 'content';
+
+        if (data[0] && data[0].content_type && data[0].id) {
+          found = true;
+          src = Lampa.Utils.addUrlComponent(src, 'contentType=' + encodeURIComponent(data[0].content_type));
+          src = Lampa.Utils.addUrlComponent(src, 'contentId=' + encodeURIComponent(data[0].id));
+        } else {
+          src = Lampa.Utils.addUrlComponent(src, 'contentType=short');
+          src = Lampa.Utils.addUrlComponent(src, (+kinopoisk_id ? 'kpId=' : 'imdbId=') + encodeURIComponent(kinopoisk_id));
+        }
+
+        src = Lampa.Utils.addUrlComponent(src, suffix);
+        lumex_search(src, function (json, cookie) {
+          if (json) success(json, cookie);else if (!found && !object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+            var src2 = embed + 'content';
+            src2 = Lampa.Utils.addUrlComponent(src2, 'contentType=short');
+            src2 = Lampa.Utils.addUrlComponent(src2, 'imdbId=' + encodeURIComponent(object.movie.imdb_id));
+            src2 = Lampa.Utils.addUrlComponent(src2, suffix);
+            lumex_search(src2, function (json, cookie) {
+              if (json) success(json, cookie);else component.emptyForQuery(select_title);
             }, error);
           } else component.emptyForQuery(select_title);
         }, error);
@@ -435,273 +509,49 @@
         network.clear();
         extract = null;
       };
-      /**
-       * Получить потоки
-       * @param {String} str
-       * @returns array
-       */
 
-
-      function extractItems(str) {
-        if (!str) return [];
-
-        try {
-          var items = component.parsePlaylist(str).map(function (item) {
-            var quality = item.label.match(/(\d\d\d+)p/);
-            var file = item.links[0] || '';
-            if (file) file = (prefer_http ? 'http:' : 'https:') + file;
-            if (prefer_mp4) file = file.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
-            return {
-              label: item.label,
-              quality: quality ? parseInt(quality[1]) : NaN,
-              file: file
-            };
-          });
-          items.sort(function (a, b) {
-            if (b.quality > a.quality) return 1;
-            if (b.quality < a.quality) return -1;
-            if (b.label > a.label) return 1;
-            if (b.label < a.label) return -1;
-            return 0;
-          });
-          return items;
-        } catch (e) {}
-
-        return [];
-      }
-
-      function decode(pass, src) {
-        var pass_len = pass.length;
-        var pass_arr = Array.from(pass, function (c) {
-          return c.charCodeAt(0);
-        });
-        var src_len = src.length;
-        var res = [];
-
-        for (var i = 0; i < src_len; i += 2) {
-          var hex = src.slice(i, i + 2);
-          var code = parseInt(hex, 16);
-          var secret = pass_arr[i / 2 % pass_len] % 255;
-          res.push(code ^ secret);
-        }
-
-        return res.map(function (code) {
-          return String.fromCharCode(code);
-        }).join('');
-      }
-
-      function searchFs(client_id, str) {
-        var regex = /id="[^"]*" value='([0-9a-f]+)'/g;
-        var found;
-
-        while ((found = regex.exec(str)) !== null) {
-          var fs = decode(client_id, found[1]);
-          if (startsWith(fs, '{"')) return fs;
-        }
-
-        return '';
-      }
-
-      function parse(str) {
+      function success(json, cookie) {
         component.loading(false);
-        str = (str || '').replace(/\n/g, '');
-        var voices = str.match(/<div class="translations">\s*(<select>.*?<\/select>)/);
-        var client_id = str.match(/id="client_id" value="([^"]*)"/);
-        var fs = client_id && searchFs(client_id[1], str);
 
-        if (!fs) {
-          var fsv = str.match(/id="[^"]*" value='(\{"\d+":[^']*)'/);
-          fs = fsv && fsv[1];
-        }
+        if (json && json.player && json.player.media && json.player.media.length) {
+          prox2 = prox;
 
-        if (fs) {
-          var files = {};
-          extract.voice = [];
-          extract.season_num = [];
-          extract.voice_seasons = {};
-          extract.fs = files;
-          var voice_map = {};
-
-          if (voices) {
-            var select = $(voices[1]);
-            $('option', select).each(function () {
-              var id = $(this).val();
-              var name = $(this).text();
-              if (name) name = name.trim();
-
-              if (id && name && !extract.voice.some(function (v) {
-                return v.id == id;
-              })) {
-                extract.voice.push({
-                  id: id,
-                  name: name
-                });
-                voice_map[id] = name;
-              }
-            });
+          if (prox2) {
+            prox2 += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+            prox2 += 'param/x-csrf-token=' + encodeURIComponent(json.meta || '') + '/';
           }
 
-          var json = Lampa.Arrays.decodeJson(fs, {});
-          var skip0 = json[0] && json[7] && JSON.stringify(json[0]) === JSON.stringify(json[7]);
+          if (Lampa.Platform.is('android')) {
+            headers2['Cookie'] = cookie;
+            headers2['x-csrf-token'] = json.meta || '';
+          }
 
-          var _loop = function _loop(i) {
-            if (i == 0 && skip0) return "continue";
-            var voice_name = voice_map[i] || (i == 0 ? 'Перевод' : '');
-            var voice_seasons = [];
-            extract.voice_seasons[i] = voice_seasons;
-            files[i] = {
-              json: _typeof(json[i]) === 'object' ? json[i] : Lampa.Arrays.decodeJson(json[i], {}),
-              items: extractItems(json[i])
-            };
-            var season_count = 0;
-            var root_count = 0;
-
-            for (var a in files[i].json) {
-              var elem = files[i].json[a];
-              if (_typeof(elem) !== 'object') continue;
-
-              if (elem.folder) {
-                season_count++;
-                var season_num = elem.id;
-
-                if (season_num == null && elem.comment) {
-                  var str_s = elem.comment.match(/(\d+)/);
-                  if (str_s) season_num = parseInt(str_s[1]);
-                }
-
-                if (season_num == null) season_num = season_count;
-                elem.season_num = season_num;
-                if (extract.season_num.indexOf(season_num) == -1) extract.season_num.push(season_num);
-                voice_seasons.push(season_num);
-                var episode_count = 0;
-
-                for (var f in elem.folder) {
-                  var media = elem.folder[f];
-                  media.items = extractItems(media.file);
-                  episode_count++;
-                  var episode_num = null;
-
-                  if (media.id) {
-                    var str_s_e = (media.id + '').match(/(\d+)_(\d+)/);
-                    if (str_s_e) episode_num = parseInt(str_s_e[2]);
-                  }
-
-                  if (episode_num == null && media.comment) {
-                    var str_e = media.comment.match(/(\d+)/);
-                    if (str_e) episode_num = parseInt(str_e[1]);
-                  }
-
-                  if (episode_num == null) episode_num = episode_count;
-                  var alt_voice = '';
-
-                  if (media.comment) {
-                    var str_v = media.comment.match(/<i>([^<]*)<\/i>/);
-                    if (str_v) alt_voice = str_v[1].trim();
-                  }
-
-                  if (alt_voice && !voice_name) voice_name = alt_voice;
-                  media.season_num = season_num;
-                  media.episode_num = episode_num;
-                  media.alt_voice = alt_voice;
-                }
-              } else {
-                elem.items = extractItems(elem.file);
-
-                var _season_num = -1;
-
-                if (extract.season_num.indexOf(_season_num) == -1) extract.season_num.push(_season_num);
-                voice_seasons.push(_season_num);
-                root_count++;
-                var _episode_num = elem.id;
-
-                if (_episode_num == null && elem.comment) {
-                  var _str_e = elem.comment.match(/(\d+)/);
-
-                  if (_str_e) _episode_num = parseInt(_str_e[1]);
-                }
-
-                if (_episode_num == null) _episode_num = root_count;
-                var _alt_voice = '';
-
-                if (elem.comment) {
-                  var _str_v = elem.comment.match(/<i>([^<]*)<\/i>/);
-
-                  if (_str_v) _alt_voice = _str_v[1].trim();
-                }
-
-                if (_alt_voice && !voice_name) voice_name = _alt_voice;
-                elem.season_num = _season_num;
-                elem.episode_num = _episode_num;
-                elem.alt_voice = _alt_voice;
-              }
-            }
-
-            if (!extract.voice.some(function (v) {
-              return v.id == i;
-            })) {
-              extract.voice.push({
-                id: i,
-                name: voice_name
+          var seasons = [];
+          var season_num = [];
+          var season_count = 0;
+          json.player.media.forEach(function (media) {
+            if (media.episodes) {
+              season_count++;
+              seasons.push(media);
+              season_num.push(media.season_id != null ? media.season_id : season_count);
+            } else if (media.media && media.episode_id != null && !season_count) {
+              season_count++;
+              seasons.push({
+                season_id: 1,
+                season_name: 'Сезон 1',
+                episodes: json.player.media
               });
-              voice_map[i] = voice_name;
+              season_num.push(1);
             }
-          };
-
-          for (var i in json) {
-            var _ret = _loop(i);
-
-            if (_ret === "continue") continue;
-          }
-
-          extract.season_num.sort(function (a, b) {
-            return a - b;
           });
-
-          if (extract.voice.length > 1 || extract.season_num.length) {
-            extract.voice.forEach(function (v) {
-              if (!v.name) v.name = v.id == 0 ? 'Перевод' : v.id == 7 ? 'Оригинал' : v.id + '';
-            });
-          }
-
+          extract = {
+            seasons: seasons,
+            season_num: season_num,
+            media: json.player.media
+          };
           filter();
           append(filtred());
         } else component.emptyForQuery(select_title);
-      }
-      /**
-       * Найти поток
-       * @param {Object} element
-       * @param {Int} max_quality
-       * @returns string
-       */
-
-
-      function getFile(element, max_quality) {
-        var file = '';
-        var items = element.media && element.media.items;
-        var quality = false;
-
-        if (items && items.length) {
-          max_quality = parseInt(max_quality);
-
-          if (max_quality) {
-            items = items.filter(function (item) {
-              return item.quality <= max_quality;
-            });
-          }
-
-          if (items.length) {
-            file = items[0].file;
-            quality = {};
-            items.forEach(function (item) {
-              quality[item.label] = item.file;
-            });
-          }
-        }
-
-        return {
-          file: file,
-          quality: quality
-        };
       }
       /**
        * Построить фильтр
@@ -720,15 +570,27 @@
         if (!filter_items.season[choice.season]) choice.season = 0;
 
         if (extract.season_num.length) {
-          var season_num = extract.season_num[choice.season];
-          extract.voice.forEach(function (v) {
-            var voice_seasons = extract.voice_seasons[v.id];
+          var season = extract.seasons[choice.season];
 
-            if (voice_seasons && voice_seasons.indexOf(season_num) !== -1) {
-              filter_items.voice.push(v.name);
-              filter_items.voice_info.push(v);
-            }
-          });
+          if (season && season.episodes) {
+            season.episodes.forEach(function (episode) {
+              if (episode.media) {
+                episode.media.forEach(function (voice) {
+                  if (voice.translation_id != null && voice.translation_name != null) {
+                    if (!filter_items.voice_info.some(function (v) {
+                      return v.id == voice.translation_id;
+                    })) {
+                      filter_items.voice.push(voice.translation_name);
+                      filter_items.voice_info.push({
+                        id: voice.translation_id,
+                        name: voice.translation_name
+                      });
+                    }
+                  }
+                });
+              }
+            });
+          }
         }
 
         if (!filter_items.voice[choice.voice]) choice.voice = 0;
@@ -761,61 +623,203 @@
         var filtred = [];
 
         if (filter_items.season_num.length) {
-          var season_num = filter_items.season_num[choice.season];
+          var season = extract.seasons[choice.season];
+          var season_num = extract.season_num[choice.season];
           var v = filter_items.voice_info[choice.voice];
-          var files = v && extract.fs[v.id];
 
-          if (files && files.json) {
-            for (var a in files.json) {
-              var elem = files.json[a];
+          if (season && season.episodes && v) {
+            var episode_count = 0;
+            season.episodes.forEach(function (episode) {
+              episode_count++;
 
-              if (elem.season_num == season_num) {
-                if (elem.folder) {
-                  for (var f in elem.folder) {
-                    var media = elem.folder[f];
-
-                    if (media && media.items && media.items.length) {
-                      filtred.push({
-                        title: component.formatEpisodeTitle(media.season_num, media.episode_num),
-                        quality: media.items[0].label,
-                        info: ' / ' + (media.alt_voice || filter_items.voice[choice.voice]),
-                        season: media.season_num,
-                        episode: media.episode_num,
-                        media: media
-                      });
-                    }
-                  }
-                } else {
-                  if (elem && elem.items && elem.items.length) {
+              if (episode.media) {
+                episode.media.forEach(function (voice) {
+                  if (voice.translation_id == v.id) {
+                    var episode_num = episode.episode_id != null ? episode.episode_id : episode_count;
                     filtred.push({
-                      title: component.formatEpisodeTitle(elem.season_num, elem.episode_num),
-                      quality: elem.items[0].label,
-                      info: ' / ' + (elem.alt_voice || filter_items.voice[choice.voice]),
-                      season: elem.season_num,
-                      episode: elem.episode_num,
-                      media: elem
+                      title: component.formatEpisodeTitle(season_num, episode_num),
+                      quality: '360p ~ 1080p',
+                      info: ' / ' + (voice.translation_name || v.name),
+                      season: season_num,
+                      episode: episode_count,
+                      media: voice
                     });
                   }
-                }
+                });
               }
-            }
+            });
           }
         } else {
-          extract.voice.forEach(function (v) {
-            var media = extract.fs[v.id];
-
-            if (media && media.items && media.items.length) {
+          extract.media.forEach(function (voice) {
+            if (voice.translation_id != null && voice.translation_name != null) {
               filtred.push({
-                title: v.name || select_title,
-                quality: media.items[0].label,
+                title: voice.translation_name || select_title,
+                quality: '360p ~ 1080p',
                 info: '',
-                media: media
+                media: voice
               });
             }
           });
         }
 
         return filtred;
+      }
+      /**
+       * Получить потоки
+       * @param {String} str
+       * @returns array
+       */
+
+
+      function extractItems(str, url) {
+        if (!str) return [];
+
+        try {
+          var items = component.parseM3U(str).map(function (item) {
+            var link = item.link || '';
+            if (prefer_mp4) link = link.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
+            var quality = item.height;
+            var alt_quality = link.match(/\b(\d\d\d+)\./);
+
+            if (alt_quality) {
+              var alt_height = parseInt(alt_quality[1]);
+              if (alt_height > quality && alt_height <= 4320) quality = alt_height;
+            }
+
+            return {
+              label: quality ? quality + 'p' : '360p ~ 1080p',
+              quality: quality,
+              file: component.proxyStream(component.fixLink(link, '', url), 'lumex')
+            };
+          });
+          items.sort(function (a, b) {
+            if (b.quality > a.quality) return 1;
+            if (b.quality < a.quality) return -1;
+            if (b.label > a.label) return 1;
+            if (b.label < a.label) return -1;
+            return 0;
+          });
+          return items;
+        } catch (e) {}
+
+        return [];
+      }
+      /**
+       * Получить поток
+       * @param {*} element
+       */
+
+
+      function parseStream(element, call, error, itemsExtractor, str, url) {
+        var file = '';
+        var quality = false;
+        var items = itemsExtractor(str, url);
+
+        if (items && items.length) {
+          file = items[0].file;
+          quality = {};
+          items.forEach(function (item) {
+            quality[item.label] = item.file;
+          });
+        }
+
+        if (file) {
+          element.stream = file;
+          element.qualitys = quality;
+          call(element);
+        } else error();
+      }
+      /**
+       * Получить поток
+       * @param {*} element
+       */
+
+
+      function getStreamM3U(element, call, error, file) {
+        file = file.replace(/\.mp4:hls:manifest/, '');
+        var hls_file = file.replace(/\/\d\d\d+([^\/]*\.m3u8)$/, '/hls$1');
+        network.clear();
+        network.timeout(5000);
+        network["native"](component.proxyStream(hls_file, 'lumex'), function (str) {
+          parseStream(element, call, error, extractItems, str, hls_file);
+        }, function (a, c) {
+          if (file != hls_file) {
+            network.clear();
+            network.timeout(5000);
+            network["native"](component.proxyStream(file, 'lumex'), function (str) {
+              parseStream(element, call, error, extractItems, str, file);
+            }, function (a, c) {
+              error();
+            }, false, {
+              dataType: 'text'
+            });
+          } else error();
+        }, false, {
+          dataType: 'text'
+        });
+      }
+
+      function getSubtitles(res, subtitles, call) {
+        if (subtitles && subtitles.length) {
+          var url = component.fixLink(subtitles.shift(), '', embed);
+
+          if (url) {
+            network.clear();
+            network.timeout(10000);
+            network["native"](prox2 + url, function (json) {
+              var url = json && json.url ? (prefer_http ? 'http:' : 'https:') + json.url : '';
+
+              if (url) {
+                var pos = url.lastIndexOf('/', url.length);
+                res.push({
+                  label: pos !== -1 ? url.substring(pos + 1) : url,
+                  url: url
+                });
+              }
+
+              getSubtitles(res, subtitles, call);
+            }, function (a, c) {
+              getSubtitles(res, subtitles, call);
+            }, {}, {
+              headers: headers2
+            });
+          } else getSubtitles(res, subtitles, call);
+        } else call(res);
+      }
+      /**
+       * Получить поток
+       * @param {*} element
+       */
+
+
+      function getStream(element, call, error) {
+        if (element.stream) return call(element);
+        if (!element.media.playlist) error();
+        var url = component.fixLink(element.media.playlist, '', embed);
+        network.clear();
+        network.timeout(10000);
+        network["native"](prox2 + url, function (json) {
+          var url = json && json.url ? (prefer_http ? 'http:' : 'https:') + json.url : '';
+
+          if (url) {
+            getSubtitles([], '', function (subtitles) {
+              element.subtitles = subtitles.length ? subtitles : false;
+
+              if (url.substr(-5) === '.m3u8') {
+                getStreamM3U(element, call, error, url);
+                return;
+              }
+
+              element.stream = component.proxyStream(url, 'lumex');
+              element.qualitys = false;
+              call(element);
+            });
+          } else error();
+        }, function (a, c) {
+          error();
+        }, {}, {
+          headers: headers2
+        });
       }
       /**
        * Добавить видео
@@ -846,42 +850,58 @@
 
           if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
           item.on('hover:enter', function () {
+            if (element.loading) return;
             if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
-            var extra = getFile(element, element.max_quality);
-
-            if (extra.file) {
-              var playlist = [];
+            element.loading = true;
+            getStream(element, function (element) {
+              element.loading = false;
               var first = {
-                url: component.getDefaultQuality(extra.quality, extra.file),
-                quality: component.renameQualityMap(extra.quality),
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
+                subtitles: element.subtitles,
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-
-              if (element.season) {
-                items.forEach(function (elem) {
-                  var ex = getFile(elem, elem.max_quality);
-                  playlist.push({
-                    url: component.getDefaultQuality(ex.quality, ex.file),
-                    quality: component.renameQualityMap(ex.quality),
-                    timeline: elem.timeline,
-                    title: elem.title
-                  });
-                });
-              } else {
-                playlist.push(first);
-              }
-
-              if (playlist.length > 1) first.playlist = playlist;
               Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+
+              if (element.season && Lampa.Platform.version) {
+                var playlist = [];
+                items.forEach(function (elem) {
+                  if (elem == element) {
+                    playlist.push(first);
+                  } else {
+                    var cell = {
+                      url: function url(call) {
+                        getStream(elem, function (elem) {
+                          cell.url = component.getDefaultQuality(elem.qualitys, elem.stream);
+                          cell.quality = component.renameQualityMap(elem.qualitys);
+                          cell.subtitles = elem.subtitles;
+                          call();
+                        }, function () {
+                          cell.url = '';
+                          call();
+                        });
+                      },
+                      timeline: elem.timeline,
+                      title: elem.title
+                    };
+                    playlist.push(cell);
+                  }
+                });
+                Lampa.Player.playlist(playlist);
+              } else {
+                Lampa.Player.playlist([first]);
+              }
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            }, function () {
+              element.loading = false;
+              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            });
           });
           component.append(item);
           component.contextmenu({
@@ -891,7 +911,14 @@
             hash_file: hash_file,
             element: element,
             file: function file(call) {
-              call(getFile(element, element.max_quality));
+              getStream(element, function (element) {
+                call({
+                  file: element.stream,
+                  quality: element.qualitys
+                });
+              }, function () {
+                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              });
             }
           });
         });
@@ -1478,7 +1505,7 @@
       var headers = Lampa.Platform.is('android') && !logged_in ? {
         'Origin': host,
         'Referer': ref,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36'
       } : {};
       var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
 
@@ -2403,7 +2430,7 @@
       var ref = host + '/';
       var embed = ref;
       var logged_in = !(prox || Lampa.Platform.is('android'));
-      var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+      var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36';
       var check_cookie = Lampa.Storage.get('online_mod_kinobase_cookie', '') + '';
       var decrypt = Utils.decodeSecret([26, 69, 74, 81, 19, 74, 64, 66, 93, 91, 68, 27, 15, 19, 17, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 83, 70, 81, 64, 77, 5, 31, 25, 71, 83, 70, 81, 64, 77, 6, 31, 25, 71, 68, 70, 20, 16, 105, 120, 114, 96, 113, 98, 107, 108, 105, 105, 113, 31, 25, 114, 121, 120, 125, 111, 109, 109, 99, 124, 24, 16, 65, 75, 85, 75, 24, 19, 79, 91, 84, 29, 67, 16, 79, 85, 65, 25, 70, 85, 71, 24, 13, 25, 111, 110, 2, 20, 70, 85, 74, 16, 73, 88, 82, 64, 81, 66, 20, 5, 16, 87, 65, 95, 85, 15, 16, 66, 89, 66, 25, 80, 92, 90, 65, 93, 81, 86, 68, 25, 9, 19, 17, 90, 85, 67, 24, 116, 118, 121, 99, 88, 70, 67, 81, 74, 25, 23, 68, 82, 75, 71, 85, 114, 74, 95, 84, 103, 71, 75, 93, 94, 83, 16, 18, 5, 92, 86, 88, 80, 14, 8, 23, 88, 92, 85, 87, 7, 8, 82, 91, 92, 73, 7, 8, 28, 91, 91, 84, 77, 6, 18, 21, 20, 17, 77, 81, 72, 64, 23, 88, 77, 89, 95, 27, 29, 11, 20, 78, 81, 75, 20, 67, 88, 65, 67, 81, 103, 68, 80, 89, 86, 25, 9, 16, 4, 3, 16, 79, 85, 65, 25, 82, 102, 91, 81, 84, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 16, 79, 77, 15, 24, 70, 88, 70, 19, 95, 125, 94, 64, 24, 13, 25, 82, 70, 87, 87, 68, 93, 87, 94, 17, 29, 72, 25, 70, 85, 64, 77, 66, 87, 20, 2, 2, 20, 77, 15, 24, 70, 88, 70, 19, 97, 121, 124, 124, 76, 68, 73, 102, 86, 72, 65, 85, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 107, 116, 120, 120, 64, 76, 64, 107, 81, 66, 76, 81, 67, 64, 16, 25, 66, 20, 71, 81, 93, 67, 26, 87, 64, 92, 90, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 93, 24, 24, 69, 16, 79, 19, 75, 81, 67, 26, 72, 69, 74, 92, 27, 66, 20, 69, 70, 84, 10, 25, 65, 19, 68, 29, 11, 20, 69, 11, 25, 64, 91, 80, 71, 30, 71, 93, 94, 93, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 29, 75, 73, 3, 16, 68, 15, 19, 79, 85, 66, 20, 104, 92, 88, 77, 86, 75, 94, 67, 20, 5, 16, 95, 65, 93, 90, 64, 89, 91, 86, 16, 105, 88, 82, 64, 81, 66, 94, 75, 24, 86, 68, 71, 16, 79, 16, 68, 84, 81, 64, 81, 65, 25, 9, 16, 91, 72, 68, 2, 20, 78, 2, 20, 70, 85, 74, 16, 91, 85, 88, 8, 6, 3, 20, 5, 16, 66, 20, 82, 83, 85, 72, 103, 93, 68, 76, 68, 9, 25, 16, 30, 85, 82, 81, 65, 103, 86, 77, 65, 64, 24, 24, 83, 86, 91, 88, 80, 81, 10, 20, 28, 30, 90, 91, 92, 82, 93, 85, 24, 24, 81, 83, 85, 75, 3, 20, 20, 26, 89, 90, 88, 76, 31, 25, 83, 85, 64, 2, 16, 29, 26, 84, 92, 64, 28, 20, 72, 95, 74, 64, 9, 25, 16, 30, 68, 87, 67, 77, 24, 19, 94, 81, 68, 103, 91, 66, 80, 68, 71, 3, 20, 20, 26, 95, 85, 77, 103, 80, 75, 93, 64, 64, 20, 16, 74, 81, 71, 109, 93, 93, 81, 87, 69, 77, 14, 19, 78, 93, 94, 80, 87, 71, 23, 71, 86, 77, 96, 89, 89, 93, 95, 76, 64, 31, 25, 87, 92, 81, 89, 66, 109, 93, 94, 92, 91, 69, 64, 2, 16, 78, 93, 93, 93, 91, 71, 26, 91, 92, 92, 85, 65, 109, 93, 93, 81, 87, 69, 77, 24, 19, 74, 81, 68, 125, 86, 68, 92, 70, 69, 88, 88, 10, 20, 79, 89, 87, 80, 92, 78, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 20, 16, 90, 88, 86, 88, 70, 121, 90, 76, 85, 75, 66, 82, 85, 14, 16, 67, 81, 94, 93, 91, 68, 23, 87, 92, 81, 89, 66, 112, 90, 71, 92, 70, 70, 85, 84, 28, 25, 87, 92, 87, 71, 95, 88, 93, 10, 25, 67, 90, 87, 80, 95, 67, 22, 83, 86, 90, 64, 86, 88, 85, 24, 24, 96, 85, 85, 74, 92, 70, 90, 71, 2, 16, 78, 93, 93, 93, 91, 71, 26, 104, 92, 88, 77, 86, 75, 94, 67, 24, 24, 86, 87, 107, 90, 87, 93, 68, 14, 24, 20, 23, 82, 93, 23, 93, 94, 93, 76, 28, 25, 82, 93, 102, 70, 85, 85, 92, 73, 3, 20, 23, 23, 82, 94, 26, 74, 85, 88, 80, 74, 21, 20, 111, 14, 24, 18, 27, 20, 78, 2, 20, 68, 70, 65, 16, 66, 20, 71, 75, 77, 16, 79, 24, 20, 23, 85, 89, 88, 76, 99, 81, 76, 69, 73, 20, 14, 25, 16, 30, 87, 87, 95, 82, 93, 86, 25, 9, 16, 82, 110, 95, 80, 80, 8, 25, 16, 30, 85, 82, 81, 65, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 85, 64, 76, 89, 87, 83, 64, 16, 79, 16, 93, 94, 16, 17, 71, 86, 77, 64, 89, 90, 95, 67, 23, 89, 86, 77, 92, 95, 80, 24, 13, 4, 9, 19, 27, 124, 117, 117, 124, 18, 25, 72, 79, 25, 71, 85, 64, 76, 89, 87, 83, 64, 23, 64, 73, 68, 93, 16, 4, 9, 14, 25, 22, 120, 113, 121, 116, 27, 29, 72, 25, 93, 86, 20, 16, 67, 92, 64, 71, 80, 90, 87, 71, 22, 67, 76, 87, 80, 92, 71, 67, 29, 24, 67, 92, 64, 71, 80, 90, 87, 71, 22, 67, 76, 87, 80, 92, 71, 67, 28, 86, 69, 85, 88, 31, 25, 22, 67, 65, 91, 83, 92, 71, 64, 27, 24, 16, 79, 69, 25, 2, 20, 90, 95, 20, 24, 71, 93, 68, 77, 93, 93, 94, 71, 30, 87, 87, 93, 73, 88, 86, 77, 81, 25, 20, 75, 85, 77, 64, 90, 87, 83, 67, 26, 91, 95, 84, 68, 95, 92, 64, 85, 28, 67, 77, 21, 20, 17, 74, 65, 83, 87, 93, 67, 74, 22, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 77, 67, 92, 70, 19, 31, 18, 16, 28, 23, 108, 22, 65, 64, 92, 70, 111, 80, 89, 68, 88, 27, 26, 23, 64, 85, 71, 76, 24, 74, 81, 71, 77, 93, 94, 83, 75, 30, 76, 70, 95, 16, 29, 75, 20, 81, 86, 25, 28, 64, 92, 64, 68, 93, 86, 87, 74, 26, 64, 76, 87, 83, 81, 75, 67, 16, 20, 64, 92, 64, 68, 93, 86, 87, 74, 26, 64, 76, 87, 83, 81, 75, 67, 17, 65, 64, 92, 70, 28, 20, 26, 67, 76, 87, 80, 92, 71, 67, 22, 20, 16, 66, 73, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 78, 95, 93, 20, 21, 31, 20, 24, 27, 100, 31, 98, 106, 111, 22, 105, 26, 104, 23, 108, 93, 31, 28, 16, 26, 68, 81, 75, 68, 17, 71, 86, 77, 64, 89, 90, 95, 67, 23, 65, 65, 85, 29, 25, 79, 24, 89, 95, 20, 27, 74, 81, 68, 64, 81, 94, 94, 71, 29, 74, 65, 83, 87, 93, 67, 74, 29, 19, 74, 81, 68, 64, 81, 94, 94, 71, 29, 74, 65, 83, 87, 93, 67, 74, 28, 69, 86, 80, 28, 20, 26, 67, 76, 87, 80, 92, 71, 67, 22, 20, 16, 66, 73, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 75, 85, 77, 64, 90, 87, 83, 67, 26, 77, 66, 85, 29, 19, 75, 81, 67, 26, 72, 69, 74, 92, 27, 66, 64, 73, 68, 93, 10, 25, 22, 82, 83, 85, 72, 22, 20, 16, 76, 70, 95, 3, 20, 67, 81, 76, 68, 80, 90, 84, 74, 26, 69, 70, 84, 28, 25, 68, 82, 75, 85, 93, 71, 2, 16, 74, 81, 71, 77, 93, 94, 83, 75, 30, 93, 85, 71, 88, 73, 25, 15, 24, 77, 2, 20, 23, 23, 83, 85, 64, 24, 13, 25, 82, 70, 87, 87, 68, 93, 87, 94, 17, 65, 65, 85, 24, 16, 80, 89, 68, 88, 29, 72, 25, 70, 85, 71, 22, 64, 76, 71, 91, 17, 79, 68, 77, 72, 85, 3, 20, 17, 94, 81, 68, 22, 20, 16, 76, 70, 95, 3, 20, 69, 70, 84, 28, 25, 68, 82, 75, 85, 93, 71, 2, 16, 93, 85, 71, 88, 73, 25, 15, 24, 77, 2, 20, 23, 23, 68, 95, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 28, 70, 75, 88, 28, 20, 92, 81, 77, 85, 26, 66, 20, 66, 81, 75, 30, 73, 65, 64, 81, 28, 75, 64, 65, 64, 92, 14, 19, 27, 68, 95, 71, 76, 18, 21, 20, 70, 75, 88, 10, 20, 77, 66, 85, 24, 19, 73, 85, 66, 85, 85, 67, 3, 20, 87, 88, 64, 81, 73, 17, 11, 25, 73, 8, 25, 16, 30, 83, 93, 68, 106, 87, 65, 80, 68, 68, 20, 5, 16, 95, 65, 93, 90, 64, 89, 91, 86, 24, 76, 70, 95, 16, 79, 16, 70, 93, 67, 23, 68, 70, 74, 92, 24, 79, 76, 73, 73, 81, 9, 25, 22, 87, 81, 76, 99, 90, 70, 90, 73, 64, 18, 24, 24, 69, 75, 88, 9, 25, 65, 66, 88, 20, 16, 73, 85, 65, 88, 89, 67, 14, 24, 75, 27, 107, 17, 3, 20, 116, 85, 76, 85, 23, 90, 92, 78, 28, 25, 73, 69, 25, 2, 20, 78, 2, 20, 71, 93, 86, 84, 86, 67, 29, 74, 81, 68, 96, 81, 93, 92, 91, 70, 77, 20, 13, 20, 79, 89, 87, 80, 92, 78, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 24, 13, 25, 82, 122, 87, 64, 11, 20, 79, 89, 87, 80, 92, 78, 26, 83, 88, 93, 81, 75, 96, 90, 84, 81, 95, 65, 76, 16, 4, 20, 68, 80, 90, 84, 91, 79, 30, 90, 88, 86, 88, 70, 121, 90, 76, 85, 75, 66, 82, 85, 20, 13, 20, 94, 102, 86, 93, 87, 2, 20, 71, 93, 86, 84, 86, 67, 29, 90, 91, 94, 71, 87, 92, 92, 20, 14, 25, 79, 77, 15, 24, 71, 80, 90, 87, 86, 67, 30, 100, 84, 81, 64, 81, 65, 83, 71, 16, 9, 24, 96, 85, 85, 74, 92, 70, 90, 71, 3, 16, 29, 26, 85, 87, 26, 89, 90, 81, 68, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 74, 24, 16, 87, 20, 16, 75, 29, 72, 25, 87, 16, 9, 24, 83, 25, 72, 79, 25, 80, 95, 87, 77, 93, 92, 90, 71, 2, 20, 66, 81, 76, 69, 75, 90, 19, 87, 81, 71, 20, 90, 81, 82, 5, 1, 10, 26, 86, 90, 103, 89, 87, 93, 71, 17, 71, 28, 20, 91, 28, 25, 70, 26, 2, 20, 77, 15, 24, 20, 23, 82, 93, 23, 70, 85, 85, 92, 73, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 81, 29, 75, 20, 74, 85, 77, 65, 65, 87, 20, 88, 20, 30, 22, 25, 92, 27, 16, 15, 16, 73, 3, 16, 78, 93, 93, 93, 91, 71, 26, 104, 124, 120, 109, 118, 107, 107, 100, 109, 104, 117, 25, 9, 19, 105, 120, 113, 109, 125, 98, 102, 96, 106, 105, 113, 11, 20, 79, 89, 87, 80, 92, 78, 26, 118, 125, 116, 117, 102, 96, 106, 105, 113, 16, 9, 24, 118, 112, 120, 118, 102, 96, 105, 100, 125, 11, 25, 93, 85, 25, 28, 67, 87, 74, 89, 73, 64, 2, 16, 20, 24, 4, 20, 16, 92, 66, 82, 85, 29, 24, 71, 91, 66, 80, 68, 71, 8, 29, 11, 20, 81, 86, 25, 28, 64, 90, 70, 89, 68, 76, 2, 16, 20, 27, 9, 24, 16, 81, 78, 81, 85, 29, 27, 74, 87, 66, 93, 72, 68, 11, 29, 8, 25, 81, 70, 85, 84, 24, 74, 64, 65, 16, 15, 16, 73, 24, 86, 80, 90, 82, 85, 88, 73, 20, 67, 16, 29, 26, 82, 83, 85, 72, 103, 93, 68, 76, 68, 19, 4, 20, 82, 85, 83, 1, 11, 7, 29, 88, 94, 81, 76, 107, 85, 77, 65, 67, 2, 20, 20, 26, 91, 95, 86, 95, 90, 92, 20, 13, 20, 90, 81, 82, 5, 1, 10, 26, 83, 91, 87, 91, 80, 81, 8, 25, 16, 30, 85, 82, 81, 65, 20, 14, 25, 86, 81, 95, 9, 2, 10, 26, 82, 83, 85, 72, 15, 24, 20, 23, 83, 86, 77, 20, 13, 20, 90, 81, 82, 5, 1, 10, 26, 87, 81, 76, 11, 25, 16, 29, 73, 91, 67, 64, 24, 13, 25, 86, 82, 82, 5, 2, 7, 22, 64, 86, 71, 71, 2, 20, 20, 26, 95, 85, 77, 103, 80, 75, 93, 64, 64, 24, 13, 25, 86, 82, 82, 5, 2, 7, 22, 87, 92, 64, 96, 90, 70, 89, 68, 76, 11, 25, 67, 90, 87, 80, 95, 67, 22, 67, 92, 64, 103, 80, 89, 85, 91, 77, 68, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 71, 86, 77, 96, 89, 89, 93, 95, 76, 64, 8, 25, 67, 89, 90, 92, 95, 78, 26, 80, 85, 81, 81, 70, 108, 89, 84, 81, 92, 76, 64, 16, 9, 24, 82, 88, 95, 2, 11, 7, 30, 87, 84, 85, 88, 70, 103, 80, 89, 85, 91, 77, 68, 2, 20, 68, 80, 90, 84, 91, 79, 30, 74, 81, 71, 112, 90, 68, 81, 74, 70, 88, 88, 19, 4, 20, 82, 85, 83, 1, 11, 7, 29, 74, 81, 68, 125, 86, 68, 92, 70, 69, 88, 88, 11, 20, 79, 89, 87, 80, 92, 78, 26, 83, 88, 93, 81, 75, 125, 93, 77, 81, 66, 66, 89, 92, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 87, 95, 92, 85, 66, 125, 86, 68, 92, 70, 69, 88, 88, 11, 20, 79, 89, 87, 80, 92, 78, 26, 83, 91, 86, 67, 86, 88, 86, 25, 9, 16, 86, 89, 91, 8, 6, 0, 23, 87, 95, 90, 75, 95, 85, 81, 8, 25, 67, 89, 90, 92, 95, 78, 26, 99, 85, 85, 73, 81, 74, 90, 74, 20, 14, 25, 86, 81, 95, 9, 2, 10, 26, 99, 85, 85, 73, 81, 74, 90, 74, 15, 19, 29, 26, 86, 90, 22, 89, 87, 93, 71, 25, 9, 16, 86, 89, 91, 8, 6, 0, 23, 82, 94, 107, 81, 94, 80, 64, 8, 25, 16, 30, 82, 86, 30, 75, 81, 82, 93, 77, 16, 9, 24, 82, 88, 95, 2, 11, 7, 30, 70, 93, 81, 93, 77, 8, 25, 73, 16, 73, 24, 83, 88, 64, 80, 81, 20, 24, 81, 17, 75, 25, 73, 19, 79, 85, 66, 20, 72, 81, 75, 85, 94, 74, 20, 13, 20, 67, 77, 2, 20, 65, 92, 71, 30, 82, 87, 66, 124, 85, 80, 81, 28, 86, 65, 86, 83, 77, 93, 92, 87, 20, 24, 68, 17, 75, 25, 93, 85, 25, 28, 24, 27, 100, 31, 76, 71, 86, 75, 107, 84, 85, 76, 81, 22, 29, 29, 77, 81, 67, 64, 16, 64, 23, 65, 65, 85, 29, 25, 20, 72, 81, 75, 85, 94, 74, 26, 69, 71, 93, 66, 25, 9, 19, 73, 15, 16, 93, 94, 16, 17, 28, 28, 101, 27, 107, 106, 100, 31, 100, 30, 111, 22, 104, 84, 31, 23, 25, 23, 64, 86, 74, 64, 24, 68, 22, 69, 75, 88, 26, 16, 20, 64, 85, 74, 81, 84, 71, 29, 79, 91, 84, 20, 5, 16, 73, 15, 19, 68, 29, 11, 20, 72, 81, 75, 85, 94, 74, 26, 64, 88, 89, 73, 92, 70, 19, 4, 20, 64, 88, 89, 73, 92, 70, 8, 25, 70, 85, 64, 77, 66, 87, 20, 67, 88, 70, 81, 89, 75, 11, 25, 73, 26, 23, 87, 81, 88, 84, 24, 66, 73, 31]);
 
@@ -2755,6 +2782,19 @@
         return url;
       }
 
+      function searchMovieUrl(str) {
+        var regex = /<script src="([^"]*\/movie\.js\b[^"]*)"/g;
+        var found;
+
+        while ((found = regex.exec(str)) !== null) {
+          var start = str.lastIndexOf('<!--', found.index);
+          var end = str.lastIndexOf('-->', found.index);
+          if (end >= start) return found[1];
+        }
+
+        return '';
+      }
+
       function getPage(url) {
         url = component.fixLink(url, '', ref);
         var cookie = (check_cookie ? check_cookie + '; ' : '') + 'player_type=new; file_type=' + file_type;
@@ -2783,12 +2823,12 @@
           var IDENTIFIER = str.match(/var IDENTIFIER = "([^"]+)";/);
           var IMAGES_URL_SCRIPT = str.match(/<script[^>]*>([^<]*var IMAGES_URL = [^<]*)<\/script>/);
           var MOVIE_ID_SCRIPT = str.match(/<script[^>]*>([^<]*var MOVIE_ID = [^<]*)<\/script>/);
-          var MOVIE_URL = str.match(/<script src="([^"]*\/movie\.js\b[^"]*)"/);
+          var MOVIE_URL = searchMovieUrl(str);
 
           if (MOVIE_ID && PLAYER_CUID && IDENTIFIER && MOVIE_ID_SCRIPT && MOVIE_URL) {
             var SCRIPTS = IMAGES_URL_SCRIPT ? IMAGES_URL_SCRIPT.index > MOVIE_ID_SCRIPT.index ? [MOVIE_ID_SCRIPT[1], IMAGES_URL_SCRIPT[1]] : [IMAGES_URL_SCRIPT[1], MOVIE_ID_SCRIPT[1]] : [MOVIE_ID_SCRIPT[1], ''];
             if (SCRIPTS[1] === SCRIPTS[0]) SCRIPTS[1] = '';
-            var movie_url = component.fixLink(MOVIE_URL[1], '', ref);
+            var movie_url = component.fixLink(MOVIE_URL, '', ref);
             network.clear();
             network.timeout(1000 * 10);
             network["native"](page_prox + movie_url, function (script) {
@@ -4893,7 +4933,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('fancdn');
-      var host = 'https://s3.fanserialstv.net';
+      var host = Utils.fanserialsHost();
       var ref = host + '/';
       var headers = Lampa.Platform.is('android') ? {
         'Origin': host,
@@ -5517,7 +5557,7 @@
       var select_id = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('fanserials');
-      var host = 'https://s2.fanserialstv.net';
+      var host = Utils.fanserialsHost();
       var ref = host + '/';
       var headers = Lampa.Platform.is('android') ? {
         'Origin': host,
@@ -15840,14 +15880,16 @@
         source: Lampa.Lang.translate('settings_rest_source')
       };
       var disable_dbg = !Utils.isDebug();
+      var isAndroid = Lampa.Platform.is('android');
+      var androidHeaders = isAndroid && Utils.checkAndroidVersion(339);
       var all_sources = [{
-        name: 'videocdn',
-        title: 'VideoCDN',
-        source: new videocdn(this, object),
+        name: 'lumex',
+        title: 'Lumex',
+        source: new lumex(this, object),
         search: false,
         kp: false,
         imdb: true,
-        disabled: disable_dbg
+        disabled: disable_dbg && !androidHeaders
       }, {
         name: 'rezka',
         title: 'Voidboost',
@@ -15908,7 +15950,7 @@
         search: true,
         kp: false,
         imdb: false,
-        disabled: disable_dbg && !Lampa.Platform.is('android')
+        disabled: disable_dbg && !isAndroid
       }, {
         name: 'fanserials',
         title: 'FanSerials',
@@ -15916,7 +15958,7 @@
         search: false,
         kp: true,
         imdb: false,
-        disabled: disable_dbg && !Lampa.Platform.is('android')
+        disabled: disable_dbg && !isAndroid
       }, {
         name: 'redheadsound',
         title: 'RedHeadSound',
@@ -16175,7 +16217,7 @@
       };
 
       this.vcdn_api_search = function (api, data, callback, error) {
-        var prox = this.proxy('videocdn');
+        var prox = this.proxy('lumex');
         var url = 'https://portal.lumex.host/api/';
         network.clear();
         network.timeout(1000 * 20);
@@ -16435,7 +16477,7 @@
 
             sources[balanser].search(object);
           } else {
-            if (balanser == 'videocdn') {
+            if (balanser == 'lumex') {
               vcdn_search(Lampa.Storage.field('online_mod_skip_kp_search') === true ? null : kp_search);
             } else kp_search(vcdn_search);
           }
@@ -17176,18 +17218,21 @@
       };
     }
 
-    var mod_version = '12.11.2024';
+    var mod_version = '17.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
     var isLocal = !startsWith(window.location.protocol, 'http');
+    var androidHeaders = Lampa.Platform.is('android') && Utils.checkAndroidVersion(339);
     console.log('App', 'is MSX:', isMSX);
     console.log('App', 'is Tizen:', isTizen);
     console.log('App', 'is iframe:', isIFrame);
     console.log('App', 'is local:', isLocal);
+    console.log('App', 'supports headers:', androidHeaders);
 
     if (!Utils.isDebug()) {
+      Lampa.Storage.set('online_mod_proxy_lumex', 'false');
       Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
       Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
       Lampa.Storage.set('online_mod_proxy_collaps', 'false');
@@ -17197,7 +17242,6 @@
       Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
     }
 
-    Lampa.Storage.set('online_mod_proxy_videocdn', 'false');
     Lampa.Storage.set('online_mod_proxy_videodb', 'false');
     Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
@@ -17209,7 +17253,7 @@
     Lampa.Params.trigger('online_mod_use_stream_proxy', false);
     Lampa.Params.trigger('online_mod_proxy_find_ip', false);
     Lampa.Params.trigger('online_mod_proxy_other', false);
-    Lampa.Params.trigger('online_mod_proxy_videocdn', false);
+    Lampa.Params.trigger('online_mod_proxy_lumex', false);
     Lampa.Params.trigger('online_mod_proxy_rezka', false);
     Lampa.Params.trigger('online_mod_proxy_rezka2', false);
     Lampa.Params.trigger('online_mod_proxy_rezka2_mirror', false);
@@ -17255,8 +17299,8 @@
     }
 
     if (Lampa.Storage.get('online_mod_proxy_reset', '') != 5) {
-      if (['collaps'].indexOf(Lampa.Storage.get('online_mod_balanser', '') + '') !== -1) {
-        Lampa.Storage.set('online_mod_balanser', 'videocdn');
+      if ([].indexOf(Lampa.Storage.get('online_mod_balanser', '') + '') !== -1) {
+        Lampa.Storage.set('online_mod_balanser', '');
       }
 
       Lampa.Storage.set('online_mod_proxy_reset', '5');
@@ -17949,7 +17993,7 @@
       network.timeout(8000);
       network.silent(url, function (json) {
         if (json && (json.success || json.message == 'Уже авторизован на сайте. Необходимо обновить страницу!')) {
-          Lampa.Storage.set("online_mod_rezka2_status", 'true');
+          Lampa.Storage.set('online_mod_rezka2_status', 'true');
           network.clear();
           network.timeout(8000);
           network.silent(host + '/', function (json) {
@@ -17960,7 +18004,7 @@
             withCredentials: true
           });
         } else {
-          Lampa.Storage.set("online_mod_rezka2_status", 'false');
+          Lampa.Storage.set('online_mod_rezka2_status', 'false');
           if (json && json.message) Lampa.Noty.show(json.message);
           if (error) error();
         }
@@ -17973,30 +18017,38 @@
     }
 
     function rezka2FillCookie(success, error) {
-      var prox = Utils.proxy('cookie');
-      var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
-      var host = !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
+      var prox = Utils.proxy('rezka2');
+      var returnHeaders = androidHeaders;
+      if (!prox && !returnHeaders) prox = Utils.proxy('cookie');
 
-      if (!prox) {
+      if (!prox && !returnHeaders) {
         if (error) error();
         return;
       }
 
-      prox += 'get_cookie/param/Cookie=/';
+      var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
+      var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
+
+      if (prox) {
+        prox += 'get_cookie/param/Cookie=/';
+        returnHeaders = false;
+      }
+
       var url = host + '/ajax/login/';
       var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
       postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
       postdata += '&login_not_save=0';
       network.clear();
       network.timeout(8000);
-      network.silent(prox + url, function (json) {
+      network["native"](prox + url, function (json) {
         var cookie = '';
         var values = {};
         var sid = '';
+        var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
 
-        if (json && json.cookie && json.cookie.forEach) {
-          json.cookie.forEach(function (param) {
-            var parts = param.split(';')[0].split("=");
+        if (cookieHeaders && cookieHeaders.forEach) {
+          cookieHeaders.forEach(function (param) {
+            var parts = param.split(';')[0].split('=');
 
             if (parts[0]) {
               if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
@@ -18010,19 +18062,28 @@
             cookies.push(name + '=' + values[name]);
           }
 
-          cookie = cookies.join("; ");
+          cookie = cookies.join('; ');
         }
 
         if (cookie) {
-          Lampa.Storage.set("online_mod_rezka2_cookie", cookie);
+          Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
           if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Utils.randomId(26)) + (cookie ? '; ' + cookie : '');
-          prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+          var headers = {};
+
+          if (prox) {
+            prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+          } else {
+            headers['Cookie'] = cookie;
+          }
+
           network.clear();
           network.timeout(8000);
-          network.silent(prox + host + '/', function (json) {
-            if (json && json.cookie && json.cookie.forEach) {
-              json.cookie.forEach(function (param) {
-                var parts = param.split(';')[0].split("=");
+          network["native"](prox + host + '/', function (json) {
+            var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
+
+            if (cookieHeaders && cookieHeaders.forEach) {
+              cookieHeaders.forEach(function (param) {
+                var parts = param.split(';')[0].split('=');
 
                 if (parts[0]) {
                   if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
@@ -18035,13 +18096,16 @@
                 _cookies.push(_name + '=' + values[_name]);
               }
 
-              cookie = _cookies.join("; ");
-              if (cookie) Lampa.Storage.set("online_mod_rezka2_cookie", cookie);
+              cookie = _cookies.join('; ');
+              if (cookie) Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
             }
 
             if (success) success();
           }, function (a, c) {
             if (success) success();
+          }, false, {
+            headers: headers,
+            returnHeaders: returnHeaders
           });
         } else {
           if (error) error();
@@ -18049,33 +18113,42 @@
       }, function (a, c) {
         Lampa.Noty.show(network.errorDecode(a, c));
         if (error) error();
-      }, postdata);
+      }, postdata, {
+        returnHeaders: returnHeaders
+      });
     }
 
     function fancdnFillCookie(success, error) {
-      var prox = Utils.proxy('cookie3');
-      var host = 'https://s2.fanserialstv.net';
+      var prox = Utils.proxy('fancdn');
+      var returnHeaders = androidHeaders;
 
-      if (!prox) {
+      if (!prox && !returnHeaders) {
         if (error) error();
         return;
       }
 
-      prox += 'get_cookie/param/Cookie=/';
+      var host = Utils.fanserialsHost();
+
+      if (prox) {
+        prox += 'get_cookie/param/Cookie=/';
+        returnHeaders = false;
+      }
+
       var url = host + '/';
       var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_fancdn_name', ''));
       postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_fancdn_password', ''));
       postdata += '&login=submit';
       network.clear();
       network.timeout(8000);
-      network.silent(prox + url, function (json) {
+      network["native"](prox + url, function (json) {
         var cookie = '';
         var values = {};
         var sid = '';
+        var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
 
-        if (json && json.cookie && json.cookie.forEach) {
-          json.cookie.forEach(function (param) {
-            var parts = param.split(';')[0].split("=");
+        if (cookieHeaders && cookieHeaders.forEach) {
+          cookieHeaders.forEach(function (param) {
+            var parts = param.split(';')[0].split('=');
 
             if (parts[0]) {
               if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
@@ -18089,19 +18162,28 @@
             cookies.push(name + '=' + values[name]);
           }
 
-          cookie = cookies.join("; ");
+          cookie = cookies.join('; ');
         }
 
         if (cookie) {
-          Lampa.Storage.set("online_mod_fancdn_cookie", cookie);
+          Lampa.Storage.set('online_mod_fancdn_cookie', cookie);
           if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Utils.randomHex(32)) + (cookie ? '; ' + cookie : '');
-          prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+          var headers = {};
+
+          if (prox) {
+            prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+          } else {
+            headers['Cookie'] = cookie;
+          }
+
           network.clear();
           network.timeout(8000);
-          network.silent(prox + host + '/', function (json) {
-            if (json && json.cookie && json.cookie.forEach) {
-              json.cookie.forEach(function (param) {
-                var parts = param.split(';')[0].split("=");
+          network["native"](prox + host + '/', function (json) {
+            var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
+
+            if (cookieHeaders && cookieHeaders.forEach) {
+              cookieHeaders.forEach(function (param) {
+                var parts = param.split(';')[0].split('=');
 
                 if (parts[0]) {
                   if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
@@ -18114,13 +18196,16 @@
                 _cookies2.push(_name2 + '=' + values[_name2]);
               }
 
-              cookie = _cookies2.join("; ");
-              if (cookie) Lampa.Storage.set("online_mod_fancdn_cookie", cookie);
+              cookie = _cookies2.join('; ');
+              if (cookie) Lampa.Storage.set('online_mod_fancdn_cookie', cookie);
             }
 
             if (success) success();
           }, function (a, c) {
             if (success) success();
+          }, false, {
+            headers: headers,
+            returnHeaders: returnHeaders
           });
         } else {
           if (error) error();
@@ -18128,7 +18213,9 @@
       }, function (a, c) {
         Lampa.Noty.show(network.errorDecode(a, c));
         if (error) error();
-      }, postdata);
+      }, postdata, {
+        returnHeaders: returnHeaders
+      });
     }
 
     function rezka2Logout(success, error) {
@@ -18136,10 +18223,10 @@
       network.clear();
       network.timeout(8000);
       network.silent(url, function (str) {
-        Lampa.Storage.set("online_mod_rezka2_status", 'false');
+        Lampa.Storage.set('online_mod_rezka2_status', 'false');
         if (success) success();
       }, function (a, c) {
-        Lampa.Storage.set("online_mod_rezka2_status", 'false');
+        Lampa.Storage.set('online_mod_rezka2_status', 'false');
         Lampa.Noty.show(network.errorDecode(a, c));
         if (error) error();
       }, false, {
@@ -18150,6 +18237,10 @@
 
 
     var template = "<div>";
+
+    if (Utils.isDebug()) {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_lumex\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Lumex</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    }
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} HDrezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
@@ -18203,7 +18294,7 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fix_stream\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fix_stream}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    if (Utils.isDebug()) {
+    if (Utils.isDebug() || androidHeaders) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
@@ -18211,7 +18302,7 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    if (Utils.isDebug()) {
+    if (Utils.isDebug() || androidHeaders) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
     }
 
