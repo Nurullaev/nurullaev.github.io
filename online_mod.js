@@ -1,4 +1,4 @@
-//30.03.2025 - Fix
+//06.04.2025 - Fix
 
 (function () {
     'use strict';
@@ -71,7 +71,7 @@
     }
 
     function fanserialsHost() {
-      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 67, 8, 31, 87, 85, 91, 67, 81, 71, 92, 81, 92, 31, 69, 66], atob('RnVja0Zhbg=='));
+      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 67, 0, 7, 31, 82, 84, 94, 71, 80, 71, 89, 81, 93, 31, 64, 67], atob('RnVja0Zhbg=='));
     }
 
     function fancdnHost() {
@@ -1101,6 +1101,7 @@
       Lampa.Storage.field('online_mod_prefer_http') === true;
       var embed = atob('aHR0cHM6Ly9hcGkubGFtcGEuc3RyZWFtL2x1bWV4Lw==');
       var api_suffix = '/' + encodeURIComponent(btoa(window.location.href));
+      var cub_id = encodeURIComponent(btoa(Lampa.Storage.get('account', '{}').email || 'none'));
       var filter_items = {};
       var choice = {
         season: 0,
@@ -1372,7 +1373,7 @@
             return;
           }
 
-          var api = embed + 'play/' + object.movie.id + '/' + encodeURIComponent(element.media.playlist) + api_suffix;
+          var api = embed + 'play/' + object.movie.id + '/' + encodeURIComponent(element.media.playlist) + '/' + cub_id + api_suffix;
           api = Lampa.Utils.addUrlComponent(api, 'ip=' + encodeURIComponent(ip));
           api = Lampa.Utils.addUrlComponent(api, 'title=' + encodeURIComponent(object.movie.title));
           lumex_api(api, function (json) {
@@ -3126,12 +3127,13 @@
       var base = 'api.embess.ws';
       var host = 'https://' + base;
       var ref = host + '/';
+      var user_agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
       var embed = (prefer_http ? 'http:' : 'https:') + '//' + base + '/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
       var prox_enc = '';
 
       if (prox) {
-        prox_enc += 'param/User-Agent=' + encodeURIComponent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1') + '/';
+        prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
       var prox_enc_stream = prox_enc;
@@ -3142,6 +3144,11 @@
         prox_enc_stream += 'param/Referer=' + encodeURIComponent(ref) + '/';
       }
 
+      var play_headers = !prox ? {
+        'User-Agent': user_agent,
+        'Origin': host,
+        'Referer': ref
+      } : {};
       var filter_items = {};
       var choice = {
         season: 0,
@@ -3281,7 +3288,12 @@
       }
 
       function fixUrl(url) {
-        url = (url || '').replace(atob('Ly9oeWUxZWFpcGJ5NHcubWF0aGFtLndzLw=='), atob('Ly9hYi5tYXRoYW0ud3Mv'));
+        url = url || '';
+
+        {
+          url = url.replace(atob('Ly9oeWUxZWFpcGJ5NHcubWF0aGFtLndzLw=='), atob('Ly9hYi5tYXRoYW0ud3Mv'));
+        }
+
         url = component.fixLinkProtocol(url, prefer_http, true);
         return url;
       }
@@ -3417,7 +3429,8 @@
                   tracks: element.audio_tracks
                 },
                 timeline: element.timeline,
-                title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
+                title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title),
+                headers: play_headers
               };
 
               if (element.season) {
@@ -3429,7 +3442,8 @@
                       tracks: elem.audio_tracks
                     },
                     timeline: elem.timeline,
-                    title: elem.title
+                    title: elem.title,
+                    headers: play_headers
                   });
                 });
               } else {
@@ -10444,10 +10458,8 @@
       function decode(str) {
         try {
           if (startsWith(str, 'http') || startsWith(str, '//')) return str;
-          return atob(str.replace(/[a-z]/g, function (x) {
-            return String.fromCharCode(x.charCodeAt(0) + (x > 'm' ? -13 : 13));
-          }).replace(/[A-Z]/g, function (x) {
-            return String.fromCharCode(x.charCodeAt(0) + (x > 'M' ? -13 : 13));
+          return atob(str.replace(/[a-zA-Z]/g, function (x) {
+            return String.fromCharCode((x <= 'Z' ? 90 : 122) >= (x = x.charCodeAt(0) + 18) ? x : x - 26);
           }));
         } catch (e) {
           return '';
@@ -11346,7 +11358,7 @@
         }
 
         if (url && rezka2_fix_stream && name === 'rezka2') {
-          return url.replace(/\/\/stream\.voidboost\.(cc|top|link|club)\//, '//femeretes.org/');
+          return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|[^\/]*.ukrtelcdn.net)\//, '//femeretes.org/');
         }
 
         return url;
@@ -11417,7 +11429,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: disable_dbg || this.isDebug3()
+        disabled: this.isDebug3()
       }, {
         name: 'rezka2',
         title: 'HDrezka',
@@ -12793,7 +12805,7 @@
       };
     }
 
-    var mod_version = '30.03.2025';
+    var mod_version = '06.04.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
