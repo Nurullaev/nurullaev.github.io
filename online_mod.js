@@ -1,4 +1,4 @@
-//18.05.2025 - Fix
+//08.06.2025 - Fix
 
 (function () {
     'use strict';
@@ -80,7 +80,7 @@
     }
 
     function fanserialsHost() {
-      return currentFanserialsHost || decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 86, 94, 66, 84, 70, 92, 81, 88, 70, 27, 94, 85, 69], atob('RnVja0Zhbg=='));
+      return currentFanserialsHost || decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 86, 81, 95, 66, 81, 71, 89, 85, 89, 27, 83, 83], atob('RnVja0Zhbg=='));
     }
 
     function fancdnHost() {
@@ -96,7 +96,7 @@
     }
 
     function baseUserAgent() {
-      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36';
+      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
     }
 
     function vcdnToken() {
@@ -7370,6 +7370,22 @@
                       });
                     }
                   });
+                } else if (e.file) {
+                  var _e_title = e.title || e.comment || '';
+
+                  var episode_num = parseInt(_e_title.match(/\d+/));
+                  var season_num = parseInt(s_title.match(/\d+/));
+                  var items = extractItems(e.file);
+                  _e_title = _e_title.replace(/\d+/, '').replace(/серия/i, '').trim();
+                  filtred.push({
+                    title: component.formatEpisodeTitle(season_num, episode_num, _e_title),
+                    quality: items[0] && items[0].quality ? items[0].quality + 'p' : '360p ~ 1080p',
+                    info: '',
+                    season: season_num,
+                    episode: episode_num,
+                    media: items,
+                    subtitles: parseSubs(e.subtitle)
+                  });
                 }
               });
             }
@@ -8119,12 +8135,24 @@
         network["native"](component.proxyLink(url, prox), function (str) {
           str = (str || '').replace(/\n/g, '');
           var player = str.match(/<div [^>]*id="visearch"[^>]*>[^<]*<iframe data-src="((https?:\/\/embed\.new\.video[^"\/]*)\/[^"]*)"/);
+          var player_link = player && player[1];
 
-          if (player) {
+          if (!player_link) {
+            var find = str.match(/\.create\('player',\s*({.*?})\s*\)/);
+            var json;
+
+            try {
+              json = find && (0, eval)('"use strict"; (function(){ return ' + find[1] + '; })();');
+            } catch (e) {}
+
+            player_link = json && json.url;
+          }
+
+          if (player_link) {
             network.clear();
             network.timeout(10000);
-            network["native"](component.proxyLink(player[1], prox, prox_enc), function (str) {
-              parse(str, player[1]);
+            network["native"](component.proxyLink(player_link, prox, prox_enc), function (str) {
+              parse(str);
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
             }, false, {
@@ -11378,7 +11406,7 @@
           if (name === 'lumex') return url;
 
           if (name === 'rezka2') {
-            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|[^\/]*.ukrtelcdn.net|vdbmate.org|sambray.org|femeretes.org)\//, rezka2_prx_ukr);
+            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|[^\/]*.ukrtelcdn.net|vdbmate.org|sambray.org|rumbegg.org|laptostack.org|frntroy.org|femeretes.org)\//, rezka2_prx_ukr);
           }
 
           return (prefer_http ? 'http://apn.cfhttp.top/' : 'https://apn.watch/') + url;
@@ -12832,7 +12860,7 @@
       };
     }
 
-    var mod_version = '18.05.2025';
+    var mod_version = '08.06.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -12921,6 +12949,8 @@
       'prx.ukrtelcdn.net': 'prx.ukrtelcdn.net',
       'prx-cogent.ukrtelcdn.net': 'prx-cogent.ukrtelcdn.net',
       'prx2-cogent.ukrtelcdn.net': 'prx2-cogent.ukrtelcdn.net',
+      'prx3-cogent.ukrtelcdn.net': 'prx3-cogent.ukrtelcdn.net',
+      'prx4-cogent.ukrtelcdn.net': 'prx4-cogent.ukrtelcdn.net',
       'prx-ams.ukrtelcdn.net': 'prx-ams.ukrtelcdn.net',
       'prx2-ams.ukrtelcdn.net': 'prx2-ams.ukrtelcdn.net'
     }, 'prx.ukrtelcdn.net');
@@ -13467,7 +13497,7 @@
         return;
       }
 
-      var prox = Utils.proxy('fancdn');
+      var prox = Utils.proxy('cookie');
       var prox_enc = '';
       var returnHeaders = androidHeaders;
 
@@ -13483,7 +13513,7 @@
 
       if (prox) {
         prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
-        prox_enc += 'cookie_plus/param/Cookie=/';
+        prox_enc += 'cookie_plus/param/Cookie=/head/';
         returnHeaders = false;
       }
 
